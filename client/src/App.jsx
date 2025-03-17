@@ -1,35 +1,34 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Routes, Route } from 'react-router-dom';
+import './App.css';
+import Home from './pages/Home';
+import Parkings from './pages/Parkings';
+import About from './pages/About';
+import Login from './pages/Login';
+import Contact from './pages/Contact';
+import MyProfile from './pages/MyProfile';
+import MyBookings from './pages/MyBookings';
+import Bookings from './pages/Bookings';
+import Navbar from './component/Navbar';
+import Footer from './component/Footer';
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div className='mx-4 sm:mx-[10%]'>
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/parkings" element={<Parkings />} />
+        <Route path="/parkings/:features" element={<Parkings />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/my-profile" element={<MyProfile />} />
+        <Route path="/my-bookings" element={<MyBookings />} />
+        <Route path="/bookings/:parkId" element={<Bookings />} /> {/* Fixed the route */}
+      </Routes>
+      <Footer />
+    </div>
+  );
 }
 
-export default App
+export default App;
