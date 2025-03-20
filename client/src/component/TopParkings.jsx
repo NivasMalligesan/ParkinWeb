@@ -20,7 +20,7 @@ const TopParkings = () => {
         Simply browse through our extensive list of Trusted Partners
       </p>
 
-      <div className="w-full grid grid-cols-1 items-center justify-center sm:grid-cols-4 gap-4 pt-5 gap-y-6 px-3 sm:px-0">
+      <div className="w-full grid grid-cols-1 items-center justify-center  md:grid-cols-4 gap-4 pt-5 gap-y-6 px-3 sm:px-0">
         {parking.slice(0, 10).map((item, index) => (
           <div
             key={index}

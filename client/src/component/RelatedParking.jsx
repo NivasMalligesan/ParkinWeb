@@ -32,11 +32,11 @@ const RelatedParking = ({ parkId, features }) => {
         whileInView={{opacity:1,y:0}}
         transition={{ duration: 0.5 }}
         viewport={{ once: true,}} 
-        className='flex flex-col items-center gap-4 my-16 text-gray-900 md:mx-10'>
+        className='flex flex-col items-center gap-4 my-10 text-gray-900 md:mx-10'>
             <h1 className='text-3xl font-medium'>Top Parkings To Book</h1>
             <p className='sm:w-1/3 text-center text-sm'>Simply browse through our extensive list of Trusted Partners</p>
 
-            <div className='w-full grid grid-cols-2 sm:grid-cols-5 gap-4 pt-5 gap-y-6 px-3 sm:px-0'>
+            <div className='w-full grid grid-cols-2 md:grid-cols-4 gap-4 pt-5 gap-y-6 px-3 sm:px-0'>
                 {relPark.slice(0, 5).map((item) => (
                     <div 
                         key={item._id} 

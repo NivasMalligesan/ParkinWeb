@@ -22,6 +22,7 @@ import openparking from './openparking.jpeg';
 import valetparking from './valetparking.jpg';
 import bikeparking from './bikeparking.jpeg'
 import rentalparking from './rentalparking.jpg'
+import upload_area from './upload_area.png'
 
 export default {
     Profile,
@@ -44,7 +45,8 @@ export default {
     valetparking,
     bikeparking,
     indiraandhiairport,
-    rentalparking
+    rentalparking,
+    upload_area
 };
 
 export const cities = [

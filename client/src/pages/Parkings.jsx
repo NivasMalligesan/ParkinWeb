@@ -10,17 +10,7 @@ const Parkings = () => {
   const navigate = useNavigate();
   const [showFilter,setShowFilter] = useState(false);
 
-  const itemVariants = {
-    hidden: { opacity: 0, x: -20 },
-    visible: (index) => ({
-        opacity: 1,
-        x: 0,
-        transition: {
-            duration: 0.5,
-            delay: index * 0.2, // Staggered delay
-        },
-    }),
-};
+  
 
   const applyFilter = () => {
     if (features) {
@@ -34,6 +24,14 @@ const Parkings = () => {
       setFilterPark(parking);
     }
   };
+
+  const renderStars = (rating) => {
+    return [...Array(Math.floor(rating))].map((_, i) => (
+      <span key={i} className="text-yellow-400">★</span>
+    ));
+};
+
+
 
   useEffect(() => {
     applyFilter();
@@ -75,37 +73,41 @@ const Parkings = () => {
                 alt={item.name}
                 className="w-full h-52 object-cover"
               />
-              <span className="flex items-center gap-2 absolute top-3 right-3 bg-white text-green-500 px-3 py-1 rounded-full text-sm font-medium">
-                <p className="w-2 h-2 bg-green-500 rounded-full"></p>
-                <p>Available</p>
+              <span className={`flex items-center gap-2 absolute top-3 right-3 bg-white ${item.available ? 'text-green-500' :'text-red-500' } px-3 py-1 rounded-full text-sm font-medium`}>
+                <p className={`w-2 h-2  ${item.available ? 'bg-green-500' :'bg-red-500' } rounded-full`}></p>
+                <p>{item.available ? 'Available' :'Unavailable' }</p>
               </span>
             </div>
 
-            <div className="p-5 space-y-4">
+            <div className="p-5 space-y-2">
               <div>
-                <h3 className="text-xl font-semibold text-gray-900">
+                <h3 className=" text-xl font-semibold text-gray-900">
                   {item.name}
                 </h3>
                 <p className="text-gray-500 mt-1">{item.location}</p>
               </div>
 
               <div className="flex justify-between items-center">
-                <div className="space-y-1">
+                <div className="">
                   <p className="text-lg font-semibold text-gray-900">
                     {currencySymbol} {item.pricePerHour}/Hour
                   </p>
                 </div>
 
                 <div className="flex items-center gap-1">
-                  <div className="text-yellow-400">★★★★</div>
-                  <div className="text-gray-300">★</div>
-                  <span className="text-sm text-gray-600 ml-1">(42)</span>
+                   <div>
+                    <div className="flex">{renderStars(item.rating)}</div>
+
+                   </div>
+                    <span className="text-sm text-gray-600 ml-1">{item.rating}</span>
                 </div>
               </div>
-
+              {item.available &&
+              
               <button className="cursor-pointer w-full bg-primary text-white font-medium py-3 rounded-lg transition-colors">
                 Book Now
               </button>
+              }
             </div>
           </div>
           ))}

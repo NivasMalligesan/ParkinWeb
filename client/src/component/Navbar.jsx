@@ -1,14 +1,21 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { FaRegUserCircle } from "react-icons/fa";
 import assets from '../assets/assets';
 import { Globe, Instagram, Linkedin } from 'lucide-react';
 import { motion } from "motion/react"
+import { AppContext } from '../context/AppContext';
 const Navbar = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const [showMenu, setShowMenu] = useState(false);
-    const [token, setToken] = useState(true);
+    const {token,setToken,userData} = useContext(AppContext);
+
+    const logout = ()=>{
+        setToken(false);
+        localStorage.removeItem('token')
+    }
+
 
     return (
         <motion.div 
@@ -37,14 +44,14 @@ const Navbar = () => {
             </NavLink>
         </ul>
             <div className='flex items-center gap-4 text-sm'>
-                {token ?
+                {token && userData ?
                     <div className='flex items-center gap-2 cursor-pointer group relative'>
-                        <img src={assets.Profile} onClick={() => navigate('/my-profile')} alt="" className='group cursor-pointer w-8 h-8 rounded-full object-cover' />
+                        <img src={userData.image } onClick={() => navigate('/my-profile')} alt="" className='group cursor-pointer w-8 h-8 rounded-full object-cover' />
                         <div className='absolute top-0 right-0 pt-14 text-base font-medium text-gray-600 z-20 hidden group-hover:block'>
                             <div className='min-w-48 bg-stone-100 rounded flex flex-col gap-4 p-4'>
                                 <p onClick={() => navigate('/my-profile')} className='hover:text-black cursor-pointer'>My Profile</p>
                                 <p onClick={() => navigate('/my-bookings')} className='hover:text-black cursor-pointer'>My Bookings</p>
-                                <p onClick={() => setToken(false)} className='hover:text-black cursor-pointer'>Logout</p>
+                                <p onClick={logout} className='hover:text-black cursor-pointer'>Logout</p>
                             </div>
                         </div>
                     </div> :

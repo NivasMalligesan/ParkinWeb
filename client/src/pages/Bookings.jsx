@@ -1,20 +1,23 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
 import assets from '../assets/assets';
 import RelatedParking from '../component/RelatedParking';
 import { motion } from 'motion/react';
+import { toast } from 'react-toastify';
+import axios from 'axios';
 
 const Bookings = () => {
   const { parkId } = useParams();
-  const { parking, currencySymbol } = useContext(AppContext);
+  const { parking, currencySymbol, backendUrl, token, userData, getParkingData } = useContext(AppContext);
   const [parkInfo, setParkInfo] = useState(null);
   const [parkSlots, setParkSlots] = useState([]);
   const [slotIndex, setSlotIndex] = useState(0);
   const [selectedStartTime, setSelectedStartTime] = useState('');
-  const [noOfHours, setNoOfHours] = useState(0);
+  const [duration, setDuration] = useState(0);
   const [selectedEndTime, setSelectedEndTime] = useState('');
   const daysOfWeek = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchParkInfo();
@@ -22,12 +25,48 @@ const Bookings = () => {
 
   useEffect(() => {
     if (parkInfo) getAvailableSlots();
+    setSelectedStartTime('');
+    setSelectedEndTime('');
   }, [parkInfo]);
 
   const fetchParkInfo = async () => {
     if (!parking) return;
-    const parkInfo = parking.find(park => park._id === Number(parkId));
+    const parkInfo = parking.find(park => park._id === parkId);
     setParkInfo(parkInfo);
+  };
+
+  const convertTo24HourFormat = (time) => {
+    const [timePart, modifier] = time.split(' ');
+    let [hours, minutes] = timePart.split(':');
+
+    if (hours === '12') {
+      hours = '00';
+    }
+
+    if (modifier === 'PM') {
+      hours = parseInt(hours, 10) + 12;
+    }
+
+    return `${hours}:${minutes}`;
+  };
+
+  const convertTo12HourFormat = (time) => {
+    let [hours, minutes] = time.split(':');
+    let modifier = 'AM';
+
+    if (hours >= 12) {
+      modifier = 'PM';
+    }
+
+    if (hours > 12) {
+      hours = hours - 12;
+    }
+
+    if (hours === '00') {
+      hours = '12';
+    }
+
+    return `${hours}:${minutes} ${modifier}`;
   };
 
   const getAvailableSlots = () => {
@@ -53,20 +92,87 @@ const Bookings = () => {
 
       let timeSlots = [];
       while (startTime < endTime) {
-        let formattedTime = startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        let hours = startTime.getHours();
+        let minutes = startTime.getMinutes();
+        let formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
 
         timeSlots.push({
           datetime: new Date(startTime),
           time: formattedTime,
+          date: new Date(startTime).toDateString(),
         });
 
-        startTime.setHours(startTime.getHours() + 1); // Move to the next slot
+        startTime.setHours(startTime.getHours() + 1);
+      }
+
+      // Add slots for the next day if the current day ends late at night
+      if (i === 0 && timeSlots.length > 0 && timeSlots[timeSlots.length - 1].time >= '23:00') {
+        let nextDay = new Date(currentDate);
+        nextDay.setDate(currentDate.getDate() + 1);
+        nextDay.setHours(0, 0, 0, 0);
+
+        let nextDayEndTime = new Date(nextDay);
+        nextDayEndTime.setHours(23, 59, 59, 999);
+
+        while (nextDay < nextDayEndTime) {
+          let hours = nextDay.getHours();
+          let minutes = nextDay.getMinutes();
+          let formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+
+          timeSlots.push({
+            datetime: new Date(nextDay),
+            time: formattedTime,
+            date: new Date(nextDay).toDateString(),
+          });
+
+          nextDay.setHours(nextDay.getHours() + 1);
+        }
       }
 
       if (timeSlots.length > 0) allSlots.push(timeSlots);
     }
 
     setParkSlots(allSlots);
+  };
+
+  const bookParking = async () => {
+    if (!token) {
+      toast.warn("Login To Book Parking");
+      return navigate('/login');
+    }
+    try {
+      const date = parkSlots[slotIndex][0].datetime;
+      const slotDate = `${date.getDate()}_${date.getMonth() + 1}_${date.getFullYear()}`;
+
+      // Ensure parkId is correctly passed
+      if (!parkId) {
+        toast.error("Parking ID is missing");
+        return;
+      }
+
+      const { data } = await axios.post(
+        `${backendUrl}/api/user/book-parking`,
+        { 
+          parkId, // Ensure parkId is included
+          userId: userData._id, 
+          slotDate, 
+          slotTime: selectedStartTime, 
+          duration 
+        },
+        { headers: { token } }
+      );
+
+      if (data.success) {
+        toast.success("Parking Booked Successfully");
+        getParkingData();
+        navigate('/my-bookings');
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      console.error("Booking Error:", error);
+      toast.error(error.response?.data?.message || "Failed to book parking slot");
+    }
   };
 
   return (
@@ -109,7 +215,6 @@ const Bookings = () => {
               {parkInfo.pricePerHour}
               <span className="text-sm text-gray-600">/hour</span>
             </p>
-
           </motion.div>
         </div>
 
@@ -132,54 +237,67 @@ const Bookings = () => {
           <p className="font-semibold mt-4">Select Start Time:</p>
           <div className="text-nowrap flex items-center gap-3 w-full overflow-x-scroll">
             {parkSlots.length > 0 &&
-              parkSlots[slotIndex].map((item, index) => (
-                <p key={index}
-                  onClick={() => {
-                    setSelectedStartTime(item.time);
-                    setSelectedEndTime('');
-                    setNoOfHours(0); // Reset hours when selecting a new start time
-                  }}
-                  className={`text-sm font-light flex-shrink px-5 py-2 rounded-full cursor-pointer ${item.time === selectedStartTime ? 'bg-primary text-white' : 'border border-gray-200'
-                    }`}>
-                  {item.time}
-                </p>
-              ))}
+              parkSlots[slotIndex].map((item, index) => {
+                const displayTime = convertTo12HourFormat(item.time);
+                return (
+                  <p
+                    key={index}
+                    onClick={() => {
+                      setSelectedStartTime(item.time);
+                      setSelectedEndTime('');
+                      setDuration(0);
+                    }}
+                    className={`text-sm font-light flex-shrink px-5 py-2 rounded-full cursor-pointer ${
+                      item.time === selectedStartTime ? 'bg-primary text-white' : 'border border-gray-200'
+                    }`}
+                  >
+                    {displayTime}
+                  </p>
+                );
+              })}
           </div>
 
           {selectedStartTime && (
-            <>
-              <p className="font-semibold mt-4">Select End Time:</p>
-              <div className="text-nowrap flex items-center gap-3 w-full overflow-x-scroll">
-                {parkSlots.length > 0 &&
-                  parkSlots[slotIndex]
-                    .filter(item => item.time > selectedStartTime) // Only show times later than start time
-                    .map((item, index) => (
-                      <p key={index}
-                        onClick={() => {
-                          setSelectedEndTime(item.time);
+  <>
+    <p className="font-semibold mt-4">Select End Time:</p>
+    <div className="text-nowrap flex items-center gap-3 w-full overflow-x-scroll">
+      {parkSlots.length > 0 &&
+        parkSlots[slotIndex]
+          .filter((item) => {
+            // Convert both times to Date objects for proper comparison
+            const startTime = new Date(`2024-01-01T${selectedStartTime}:00`);
+            const endTime = new Date(`2024-01-01T${item.time}:00`);
+            return endTime > startTime; // Ensure end time is after start time
+          })
+          .map((item, index) => {
+            const displayTime = convertTo12HourFormat(item.time);
+            return (
+              <p
+                key={index}
+                onClick={() => {
+                  if (item.time !== selectedEndTime) {
+                    setSelectedEndTime(item.time);
+                    const startHour = parseInt(selectedStartTime.split(':')[0]);
+                    const endHour = parseInt(item.time.split(':')[0]);
+                    setDuration(endHour - startHour);
+                  }
+                }}
+                className={`text-sm font-light flex-shrink px-5 py-2 rounded-full cursor-pointer ${
+                  item.time === selectedEndTime ? 'bg-primary text-white' : 'border border-gray-200'
+                }`}
+              >
+                {displayTime}
+              </p>
+            );
+          })}
+    </div>
+  </>
+)}
 
-                          // Calculate noOfHours
-                          const startHour = parseInt(selectedStartTime.split(":")[0]);
-                          const endHour = parseInt(item.time.split(":")[0]);
-                          setNoOfHours(endHour - startHour);
-                        }}
-                        className={`text-sm font-light flex-shrink px-5 py-2 rounded-full cursor-pointer ${item.time === selectedEndTime ? 'bg-primary text-white' : 'border border-gray-200'
-                          }`}>
-                        {item.time}
-                      </p>
-                    ))}
-              </div>
-            </>
-          )}
-
-          {/* Display No of Hours */}
-          {noOfHours > 0 && (
-            <p className="mt-2 text-gray-600 font-medium">Total Hours: {noOfHours} hrs</p>
-          )}
 
           {/* Book Slot Button */}
-          <button className={`text-white text-sm font-light px-14 py-2.5 rounded-full my-6 w-1/2 ${selectedStartTime && selectedEndTime ? 'bg-primary' : 'bg-gray-400'}`} disabled={!selectedStartTime || !selectedEndTime}>
-            Book Slot ({selectedStartTime} - {selectedEndTime})
+          <button onClick={bookParking} className={`text-white text-sm font-light px-14 py-2.5 rounded-full my-6 w-1/2 ${selectedStartTime && selectedEndTime ? 'bg-primary' : 'bg-gray-400'}`} disabled={!selectedStartTime || !selectedEndTime}>
+            Book Slot ({duration} Hour)
           </button>
         </motion.div>
 
