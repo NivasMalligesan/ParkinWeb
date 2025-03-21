@@ -8,8 +8,10 @@ import valetparking from './valetparking.jpg';
 import bikeparking from './bikeparking.jpeg'
 import rentalparking from './rentalparking.jpg'
 import evCharging from './evCharging.jpeg';
+import cancle_icon from './cancel_icon.svg'
 export default {
-    upload_area
+    upload_area,
+    cancle_icon
 }
 
 

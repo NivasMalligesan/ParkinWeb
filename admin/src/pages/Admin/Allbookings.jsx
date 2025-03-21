@@ -1,10 +1,59 @@
 import React from 'react'
+import { useContext } from 'react'
+import { AdminContext } from '../../context/AdminContext'
+import { useEffect } from 'react';
+import { AppContext } from '../../context/AppContext';
+import assets from '../../assets/assets';
 
 const Allbookings = () => {
+
+  const {aToken,bookings,getAllBooking,cancleBooking} = useContext(AdminContext);
+  const {slotDateFormate,currencySymbol} = useContext(AppContext)
+  useEffect(()=>{
+    getAllBooking()
+  },[aToken])
+
+
+ 
     
   return (
-    <div>
-
+    <div className='w-full max-w-6xl m-5' >
+      <p className='mb-3 text-lg font-medium'>All Bookings</p>
+      <div className='bg-white shadow rounded text-sm max-h-[80vh] min-h-[60vh] overflow-y-scroll'>
+        <div className='hidden sm:grid grid-cols-[0.5fr_3fr_3fr_3fr_1fr_3fr] grid-flow-col py-3 px-6 border-b border-gray-300'>
+            <p>#</p>
+            <p>User</p>
+            <p>Date & time</p>
+            <p>Parkings</p>
+            <p>Price</p>
+            <p>Action</p>
+        </div>
+        {bookings.map((item,index)=>(
+          <div className='flex flex-wrap justify-between max-sm:gap-2 sm:grid sm:grid-cols-[0.5fr_3fr_3fr_3fr_1fr_3fr] items-center text-gray-500 py-3 px-6 border-b border-gray-300 hover:bg-gray-100' key={index}>
+            <p className='max-sm:hidden'>{index+1}</p>
+            <div className='flex items-center gap-2'>
+              <img className='w-8 h-8 object-cover rounded-full' src={item.userData.image} alt="" />
+              <p>{item.userData.name}</p>
+            </div>
+            <p>{slotDateFormate(item.slotDate)} | {item.slotTime}</p>
+            <div className='flex items-center gap-2'>
+              <img className='w-8 h-8 object-cover rounded-full' src={item.parkData.image} alt="" />
+              <p>{item.parkData.name}</p>
+            </div>
+            <p>{currencySymbol} {item.amount}</p>
+            {
+              item.cancelled 
+              ?
+               <p className='text-red-600 text-center rounded-full'>Cancelled</p> 
+               : <div className='flex items-center justify-center gap-2'>
+                <p className='text-green-600 border flex justify-center py-1 px-2 rounded-full border-green-600 bg-green-100  '>Booked</p> 
+                <p  onClick={()=>cancleBooking(item._id)} className='text-red-600 border py-1 px-2 rounded-full cursor-pointer border-red-600 bg-red-100  '>Cancel Booking</p> 
+            </div>
+            }
+            
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

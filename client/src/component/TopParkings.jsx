@@ -21,7 +21,7 @@ const TopParkings = () => {
       </p>
 
       <div className="w-full grid grid-cols-1 items-center justify-center  md:grid-cols-4 gap-4 pt-5 gap-y-6 px-3 sm:px-0">
-        {parking.slice(0, 10).map((item, index) => (
+        {parking.slice(0, 8).map((item, index) => (
           <div
             key={index}
             onClick={() => navigate(`/bookings/${item._id}`)}

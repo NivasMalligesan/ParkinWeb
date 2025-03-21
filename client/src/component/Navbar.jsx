@@ -23,7 +23,7 @@ const Navbar = () => {
         animate={{ opacity:1,y:0 }} // Animation when in view
         transition={{ duration: 0.5 }}
         viewport={{ once: true,}} 
-        className='flex items-center justify-between py-2 mb-5 border-b border-b-gray-400'>
+        className='sticky top-0 z-50 bg-white w-full flex items-center justify-between py-2 px-1 mb-5 '>
             <h1 onClick={() => navigate('/')} className='text-3xl cursor-pointer font-semibold '>PARKin</h1>
             <ul className='hidden md:flex items-start gap-5 '>
             <NavLink to="/">

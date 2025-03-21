@@ -4,10 +4,12 @@ import { FaCalendarAlt, FaMapMarkerAlt } from 'react-icons/fa';
 import {motion} from 'motion/react'
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import {useNavigate} from 'react-router-dom'
 
 const MyParkings = () => {
   const { backendUrl , token } = useContext(AppContext);
   const [booking,setBooking ] = useState([])
+  const navigate = useNavigate()
   const months = ["","Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
   const slotDateFormate = (slotDate) =>{
@@ -44,6 +46,68 @@ const MyParkings = () => {
     }
   }
 
+  const initPay = ({ order }) => {
+    const options = {
+      key: import.meta.env.VITE_RAZORPAY_KEY_ID,  // Ensure this is set
+      amount: order.amount,  // Razorpay expects amount in the smallest unit (paise)
+      currency: order.currency,
+      name: "Booking Payment",
+      description: "Parking Slot Booking Payment",
+      order_id: order.id,
+      receipt: order.receipt,  // Fixed spelling
+      handler: async (response) => {
+        console.log("Payment Successful:", response);
+        try {
+          const { data } = await axios.post(backendUrl + '/api/user/verifyRazorpay', response, { headers: { token } });
+          if (data.success) {
+            toast.success("Payment successful!");
+            getUserBooking(); // Refresh the bookings list
+            navigate('/my-bookings');
+          }
+        } catch (error) {
+          console.error(error);
+          toast.error(error.message);
+        }
+      }
+    };
+  
+    const rzp = new window.Razorpay(options);
+  
+    // Handle payment failure
+    rzp.on("payment.failed", (response) => {
+      console.error("Payment Failed:", response);
+      toast.error("Payment failed! Please try again.");
+    });
+  
+    rzp.open();
+  };
+  
+  const bookingRazorpay = async (bookingId) => {
+    try {
+      if (!bookingId) {
+        console.error("Invalid booking ID");
+        return;
+      }
+  
+      const { data } = await axios.post(
+        `${backendUrl}/api/user/payment-razorpay`,
+        { bookingId },
+        { headers: { token } }
+      );
+  
+      if (data.success) {
+        console.log("Order Data:", data.order);
+        initPay({ order: data.order });
+      } else {
+        console.error("Payment order creation failed:", data.message);
+      }
+    } catch (error) {
+      console.error("Error in bookingRazorpay:", error.response?.data || error.message);
+    }
+  };
+  
+
+
 
   useEffect(()=>{
     if(token){
@@ -64,19 +128,27 @@ const MyParkings = () => {
     <div className='grid grid-cols-[2fr_2fr] sm:gap-4 lg:flex bg-gray-50 shadow-md rounded-lg overflow-hidden pl-2 pt-2 ' key={index}>
       <img className='w-full h-full sm:w-40 sm:h-40 rounded object-cover' src={item.parkData?.image} alt={item.parkData?.name || "Parking Image"} />
       <div className='flex-1 p-4'>
-        <p className='text-lg font-semibold text-gray-900'>{item.parkData?.name}</p>
+        <p  className='text-lg font-semibold text-gray-900'>{item.parkData?.name}</p>
         <p className='text-gray-600 flex mt-2 items-center gap-2'><FaMapMarkerAlt  />{item.parkData?.location}</p>
         <p className='text-gray-700 font-medium mt-2'>Address:</p>
         <p className='text-sm text-gray-500'>{item.parkData?.address}</p>
         <p className='text-gray-700 mt-2 flex items-center gap-2'><FaCalendarAlt />Date And Time :  {slotDateFormate(item.slotDate)} | {item.slotTime}</p>
       </div>
       <div className='flex flex-col justify-center items-end p-4 gap-3 mt-2'>
+        {
+          !item.cancelled && item.Payment &&
+          <button className='w-full sm:w-40 py-2 rounded border transition-all duration-300'>Paid</button>
+        }
       {
-          !item.cancelled &&
-        <button className='w-full sm:w-40 py-2 rounded border hover:bg-[#14213d] hover:text-white transition-all duration-300'>Pay Online</button>
+          !item.cancelled && !item.Payment &&
+        <button onClick={()=>bookingRazorpay(item._id)} className='w-full sm:w-40 py-2 rounded border hover:bg-[#14213d] hover:text-white transition-all duration-300'>Pay Online</button>
       }{
-          !item.cancelled &&
+          !item.cancelled && !item.Payment &&
         <button onClick={()=>cancelBooking(item._id)} className='w-full sm:w-40 py-2 rounded border hover:bg-red-600 hover:text-white transition-all duration-300'>Cancel Booking</button>
+        }
+        {
+          item.cancelled &&
+        <button  className='w-full sm:w-40 py-2 rounded border border-red-600 text-red-600 transition-all duration-300'>Canceled Booking</button>
         }
         </div>
     </div>

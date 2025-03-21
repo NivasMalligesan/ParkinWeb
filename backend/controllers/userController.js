@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import { v2 as cloudinary } from 'cloudinary';
 import parkingModel from '../models/parkingModel.js';
 import bookingModel from '../models/bookingModel.js';
+import razorpay from 'razorpay';
 
 // API to Register User
 const registerUser = async (req, res) => {
@@ -192,8 +193,14 @@ const bookParking = async (req, res) => {
     }
 
     // Check if parking is exceeding total capacity
-    const totalCapacity = parkData.totalCapacity ; // Default capacity if not provided
-    const currentBookings = await bookingModel.find({ parkId, slotDate });
+    const totalCapacity = parkData.totalCapacity; // Default capacity if not provided
+
+    // Fetch all bookings for the given parkId and slotDate, excluding cancelled bookings
+    const currentBookings = await bookingModel.find({
+      parkId,
+      slotDate,
+      cancelled: { $ne: true }, // Exclude cancelled bookings
+    });
 
     let slotBookingCount = {}; // To track slot-wise bookings
     currentBookings.forEach((booking) => {
@@ -203,6 +210,7 @@ const bookParking = async (req, res) => {
       });
     });
 
+    // Check if any of the slots are already booked
     for (const slot of bookedSlots) {
       if (slotBookingCount[slot] >= totalCapacity) {
         return res.status(400).json({ success: false, message: `Slot ${slot} is fully booked` });
@@ -299,11 +307,19 @@ const cancelBooking = async (req, res) => {
 
     const bookedSlots = generateBookedSlots(slotTime, duration);
 
+    // Log the slots to be removed
+    console.log("Slots to be removed:", bookedSlots);
+
     // Remove the booked slots from the parking data
     if (parkData.slots_booked && parkData.slots_booked[slotDate]) {
+      console.log("Slots booked before removal:", parkData.slots_booked[slotDate]);
+
+      // Filter out the booked slots
       parkData.slots_booked[slotDate] = parkData.slots_booked[slotDate].filter(
         slot => !bookedSlots.includes(slot)
       );
+
+      console.log("Slots booked after removal:", parkData.slots_booked[slotDate]);
 
       // Save the updated parking data
       await parkData.save();
@@ -316,4 +332,62 @@ const cancelBooking = async (req, res) => {
   }
 };
 
-export { registerUser, loginUser, getProfile, updateProfile,listBooking, bookParking ,cancelBooking};
+const razorpayInstance = new razorpay({
+  key_id:process.env.RAZORPAY_KEY_ID,
+  key_secret:process.env.RAZORPAY_KEY_SECRET,
+
+})
+
+//api to make payment using razor pay
+const paymentRazorpay = async (req, res) => {
+  try {
+    const { bookingId } = req.body;
+    console.log("Received Booking ID:", bookingId);
+
+    const bookingData = await bookingModel.findById(bookingId);
+    console.log("Booking Data:", bookingData);
+
+    if (!bookingData || bookingData.cancelled) {
+      return res.status(404).json({ success: false, message: 'Booking not found' });
+    }
+
+    const options = {
+      amount: bookingData.amount * 100, // Amount in paisa
+      currency: process.env.CURRENCY || 'INR',
+      receipt: bookingId,
+    };
+
+    console.log("Razorpay Options:", options);
+
+    const order = await razorpayInstance.orders.create(options);
+    console.log("Order Created:", order);
+
+    res.json({ success: true, order });
+
+  } catch (error) {
+    console.error("Error in payment:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
+//api to verify razor pay 
+
+const verifyRazorpay = async(req,res) =>{
+  try {
+    const {razorpay_order_id} = req.body;
+    const orderInfo = await razorpayInstance.orders.fetch(razorpay_order_id);
+    console.log(orderInfo)
+    if(orderInfo.status === 'paid'){
+     await bookingModel.findByIdAndUpdate(orderInfo.receipt,{Payment:true})
+     res.json({success:true,message:"Payment Completed"})
+    }else{
+      res.json({success:false,message:"Payment Failed"})
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+export { registerUser,verifyRazorpay, loginUser, getProfile, updateProfile,listBooking, bookParking ,cancelBooking , paymentRazorpay};

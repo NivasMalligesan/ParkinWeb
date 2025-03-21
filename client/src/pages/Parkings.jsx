@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
 import { FilterIcon } from 'lucide-react';
 import {motion} from 'motion/react'
+import {FaStar} from 'react-icons/fa'
+
 const Parkings = () => {
   const { features } = useParams();
   const { parking,currencySymbol } = useContext(AppContext);
@@ -25,11 +27,7 @@ const Parkings = () => {
     }
   };
 
-  const renderStars = (rating) => {
-    return [...Array(Math.floor(rating))].map((_, i) => (
-      <span key={i} className="text-yellow-400">★</span>
-    ));
-};
+
 
 
 
@@ -41,7 +39,7 @@ const Parkings = () => {
     <div>
       <p className='text-gray-600 '>Browse Through the Parkings</p>
       <div className='flex flex-col sm:flex-row items-start gap-5 mt-5'>
-        <button onClick={()=>setShowFilter(prev => !prev)} className={`flex gap-2 items-center py-1 px-3 border rounded text-sm transition-all cursor-pointer sm:hidden ${showFilter ? 'bg-primary text-white ' : ''}`}><FilterIcon size={18}/> Filters</button>
+        <button onClick={()=>setShowFilter(prev => !prev)} className={`flex gap-2 w-full items-center justify-center py-3 px-3 border rounded text-sm transition-all cursor-pointer sm:hidden  ${showFilter ? 'bg-primary text-white ' : ''}`}><FilterIcon size={18}/> Filters</button>
         <motion.div
         initial={{opacity:0,x:-100}}
         animate={{opacity:1,x:0}}
@@ -95,10 +93,7 @@ const Parkings = () => {
                 </div>
 
                 <div className="flex items-center gap-1">
-                   <div>
-                    <div className="flex">{renderStars(item.rating)}</div>
-
-                   </div>
+                    <FaStar className='text-yellow-400'/>          
                     <span className="text-sm text-gray-600 ml-1">{item.rating}</span>
                 </div>
               </div>
@@ -110,6 +105,7 @@ const Parkings = () => {
               }
             </div>
           </div>
+          
           ))}
         </motion.div>
       </div>

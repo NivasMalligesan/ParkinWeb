@@ -35,103 +35,49 @@ const Bookings = () => {
     setParkInfo(parkInfo);
   };
 
-  const convertTo24HourFormat = (time) => {
-    const [timePart, modifier] = time.split(' ');
-    let [hours, minutes] = timePart.split(':');
-
-    if (hours === '12') {
-      hours = '00';
-    }
-
-    if (modifier === 'PM') {
-      hours = parseInt(hours, 10) + 12;
-    }
-
-    return `${hours}:${minutes}`;
-  };
-
-  const convertTo12HourFormat = (time) => {
-    let [hours, minutes] = time.split(':');
-    let modifier = 'AM';
-
-    if (hours >= 12) {
-      modifier = 'PM';
-    }
-
-    if (hours > 12) {
-      hours = hours - 12;
-    }
-
-    if (hours === '00') {
-      hours = '12';
-    }
-
-    return `${hours}:${minutes} ${modifier}`;
-  };
+ 
+ 
+ 
 
   const getAvailableSlots = () => {
     let today = new Date();
     let allSlots = [];
-
+  
     for (let i = 0; i < 7; i++) {
       let currentDate = new Date(today);
       currentDate.setDate(today.getDate() + i);
-
+  
       let startTime = new Date(currentDate);
       startTime.setHours(0, 0, 0, 0);
-
+  
       let endTime = new Date(currentDate);
       endTime.setHours(23, 59, 59, 999);
-
+  
       if (i === 0) {
         let now = new Date();
         now.setMinutes(now.getMinutes() + (60 - (now.getMinutes() % 60))); // Next full hour
         now.setSeconds(0, 0);
         startTime = now;
       }
-
+  
       let timeSlots = [];
       while (startTime < endTime) {
         let hours = startTime.getHours();
         let minutes = startTime.getMinutes();
         let formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-
+  
         timeSlots.push({
           datetime: new Date(startTime),
           time: formattedTime,
           date: new Date(startTime).toDateString(),
         });
-
+  
         startTime.setHours(startTime.getHours() + 1);
       }
-
-      // Add slots for the next day if the current day ends late at night
-      if (i === 0 && timeSlots.length > 0 && timeSlots[timeSlots.length - 1].time >= '23:00') {
-        let nextDay = new Date(currentDate);
-        nextDay.setDate(currentDate.getDate() + 1);
-        nextDay.setHours(0, 0, 0, 0);
-
-        let nextDayEndTime = new Date(nextDay);
-        nextDayEndTime.setHours(23, 59, 59, 999);
-
-        while (nextDay < nextDayEndTime) {
-          let hours = nextDay.getHours();
-          let minutes = nextDay.getMinutes();
-          let formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-
-          timeSlots.push({
-            datetime: new Date(nextDay),
-            time: formattedTime,
-            date: new Date(nextDay).toDateString(),
-          });
-
-          nextDay.setHours(nextDay.getHours() + 1);
-        }
-      }
-
+  
       if (timeSlots.length > 0) allSlots.push(timeSlots);
     }
-
+  
     setParkSlots(allSlots);
   };
 
@@ -143,25 +89,38 @@ const Bookings = () => {
     try {
       const date = parkSlots[slotIndex][0].datetime;
       const slotDate = `${date.getDate()}_${date.getMonth() + 1}_${date.getFullYear()}`;
-
+  
       // Ensure parkId is correctly passed
       if (!parkId) {
         toast.error("Parking ID is missing");
         return;
       }
-
+  
+      // Calculate the end date if the booking crosses midnight
+      const startTimeMinutes = convertTimeToMinutes(selectedStartTime);
+      const endTimeMinutes = convertTimeToMinutes(selectedEndTime);
+      let endDate = new Date(date);
+  
+      if (endTimeMinutes < startTimeMinutes) {
+        // If end time is less than start time, it means the booking crosses midnight
+        endDate.setDate(endDate.getDate() + 1);
+      }
+  
+      const endSlotDate = `${endDate.getDate()}_${endDate.getMonth() + 1}_${endDate.getFullYear()}`;
+  
       const { data } = await axios.post(
         `${backendUrl}/api/user/book-parking`,
         { 
           parkId, // Ensure parkId is included
           userId: userData._id, 
           slotDate, 
+          endSlotDate, // Include end date if booking crosses midnight
           slotTime: selectedStartTime, 
           duration 
         },
         { headers: { token } }
       );
-
+  
       if (data.success) {
         toast.success("Parking Booked Successfully");
         getParkingData();
@@ -173,6 +132,41 @@ const Bookings = () => {
       console.error("Booking Error:", error);
       toast.error(error.response?.data?.message || "Failed to book parking slot");
     }
+  };
+
+  const convertTimeToMinutes = (time) => {
+    const [timePart, modifier] = time.split(' ');
+    let [hours, minutes] = timePart.split(':').map(Number);
+  
+    // Convert to 24-hour format
+    if (modifier === 'PM' && hours !== 12) {
+      hours += 12;
+    }
+    if (modifier === 'AM' && hours === 12) {
+      hours = 0;
+    }
+  
+    // Calculate total minutes since midnight
+    return hours * 60 + minutes;
+  };
+  
+  const convertTo12HourFormat = (time) => {
+    let [hours, minutes] = time.split(':');
+    let modifier = 'AM';
+  
+    if (hours >= 12) {
+      modifier = 'PM';
+    }
+  
+    if (hours > 12) {
+      hours = hours - 12;
+    }
+  
+    if (hours === '00') {
+      hours = '12';
+    }
+  
+    return `${hours}:${minutes} ${modifier}`;
   };
 
   return (
@@ -264,10 +258,12 @@ const Bookings = () => {
       {parkSlots.length > 0 &&
         parkSlots[slotIndex]
           .filter((item) => {
-            // Convert both times to Date objects for proper comparison
-            const startTime = new Date(`2024-01-01T${selectedStartTime}:00`);
-            const endTime = new Date(`2024-01-01T${item.time}:00`);
-            return endTime > startTime; // Ensure end time is after start time
+            // Convert both times to minutes since midnight for accurate comparison
+            const startMinutes = convertTimeToMinutes(selectedStartTime);
+            const endMinutes = convertTimeToMinutes(item.time);
+
+            // Ensure end time is after start time
+            return endMinutes > startMinutes;
           })
           .map((item, index) => {
             const displayTime = convertTo12HourFormat(item.time);
@@ -277,9 +273,9 @@ const Bookings = () => {
                 onClick={() => {
                   if (item.time !== selectedEndTime) {
                     setSelectedEndTime(item.time);
-                    const startHour = parseInt(selectedStartTime.split(':')[0]);
-                    const endHour = parseInt(item.time.split(':')[0]);
-                    setDuration(endHour - startHour);
+                    const startMinutes = convertTimeToMinutes(selectedStartTime);
+                    const endMinutes = convertTimeToMinutes(item.time);
+                    setDuration((endMinutes - startMinutes) / 60); // Convert minutes to hours
                   }
                 }}
                 className={`text-sm font-light flex-shrink px-5 py-2 rounded-full cursor-pointer ${
