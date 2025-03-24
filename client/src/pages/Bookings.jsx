@@ -186,10 +186,6 @@ const Bookings = () => {
             <div className="flex items-center gap-2 text-sm mt-1 text-gray-600">
               <p>Location: {parkInfo.location}</p>
               <button className="py-0.5 px-2 border text-xs rounded-full">{parkInfo.totalCapacity} Spots</button>
-              <div className="flex items-center gap-2 text-xs text-green-500 border py-0.5 px-2 rounded-full">
-                <p className="w-2 h-2 bg-green-500 rounded-full"></p>
-                <p>{parkInfo.availableSpots} Slots Available</p>
-              </div>
             </div>
             <div className="flex flex-wrap items-center gap-2 text-sm mt-3 sm:mt-1">
               {parkInfo.features.map((item, index) => (

@@ -92,7 +92,6 @@ const loginAdmin = async (req, res) => {
             const token = jwt.sign(
                 { email, password },  // Payload should be an object
                 process.env.JWT_SECRET,
-                { expiresIn: '1h' } // Token expires in 1 hour
             );
 
             res.json({ success: true, token });

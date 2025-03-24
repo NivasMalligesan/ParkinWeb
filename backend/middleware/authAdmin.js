@@ -10,7 +10,7 @@ const authAdmin = async (req, res, next) => {
 
         const token_decode = jwt.verify(atoken, process.env.JWT_SECRET);
 
-        // Ensure token structure is correct
+
         if (!token_decode.email || !token_decode.password) {
             return res.status(401).json({ success: false, message: "Invalid token structure" });
         }

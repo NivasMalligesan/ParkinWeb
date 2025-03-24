@@ -20,8 +20,8 @@ app.use(cors());
 
 // API Endpoints
 app.use('/api/admin', adminRouter);
+app.use('/api/user', userRouter); 
 app.use('/api/parking', parkingRouter);
-app.use('/api/user', userRouter); // Fixed missing forward slash
 
 // Root route
 app.get('/', (req, res) => {

@@ -2,13 +2,18 @@ import React, { useContext ,useState} from 'react'
 import { AdminContext } from '../context/AdminContext'
 import axios from 'axios'
 import {toast} from 'react-toastify'
+import { useNavigate } from 'react-router-dom'
+import { ParkingContext } from '../context/ParkingContext'
+import { AppContext } from '../context/AppContext'
 
 const Login = () => {
     const [state , setState] = useState('Admin')
-    const {setAToken,backendUrl} = useContext(AdminContext);
+    const {setAToken} = useContext(AdminContext);
+    const {pToken,setPToken } = useContext(ParkingContext)
+    const {backendUrl} = useContext(AppContext)
     const [email,setEmail] = useState('')
     const [password,setPassword] = useState('')
-
+    const navigate = useNavigate()
     const onSubmitHandler = async (event)=>{
         event.preventDefault()
         try {
@@ -17,11 +22,21 @@ const Login = () => {
                 if(data.success){
                     localStorage.setItem('aToken',data.token)
                     setAToken(data.token)
+                    navigate('/admin-dashboard')
                 }else{
                     toast.error(data.message)
                 }
             }else{
+                console.log(backendUrl)
+                const { data } = await axios.post(backendUrl + '/api/parking/login', { email, password });
 
+                if(data.success){
+                    localStorage.setItem('pToken',data.token)
+                    setPToken(data.token)
+                    navigate('/parking-dashboard')
+                }else{
+                    
+                }
             }
         } catch (error) {
             

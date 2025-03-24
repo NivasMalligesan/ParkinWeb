@@ -140,15 +140,19 @@ const MyParkings = () => {
           <button className='w-full sm:w-40 py-2 rounded border transition-all duration-300'>Paid</button>
         }
       {
-          !item.cancelled && !item.Payment &&
+          !item.cancelled && !item.Payment && 
         <button onClick={()=>bookingRazorpay(item._id)} className='w-full sm:w-40 py-2 rounded border hover:bg-[#14213d] hover:text-white transition-all duration-300'>Pay Online</button>
       }{
-          !item.cancelled && !item.Payment &&
+          !item.cancelled && !item.Payment && !item.isCompleted &&
         <button onClick={()=>cancelBooking(item._id)} className='w-full sm:w-40 py-2 rounded border hover:bg-red-600 hover:text-white transition-all duration-300'>Cancel Booking</button>
         }
         {
           item.cancelled &&
         <button  className='w-full sm:w-40 py-2 rounded border border-red-600 text-red-600 transition-all duration-300'>Canceled Booking</button>
+        }
+        {
+          item.isCompleted && 
+          <button  className='w-full sm:w-40 py-2 rounded border border-green-600 text-green-600 transition-all duration-300'>Completed</button>
         }
         </div>
     </div>

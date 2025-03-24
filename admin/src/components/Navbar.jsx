@@ -1,15 +1,23 @@
 import React, { useContext } from 'react'
 import { AdminContext } from '../context/AdminContext'
 import {useNavigate} from 'react-router-dom'
+import { ParkingContext } from '../context/ParkingContext';
 
 const Navbar = () => {
     const {aToken,setAToken } = useContext(AdminContext);
+    const {pToken,setPToken} = useContext(ParkingContext)
     const navigate = useNavigate()
 
     const logout = ()=>{
-        navigate('/')
-        aToken && setAToken('')
-        aToken && localStorage.removeItem('aToken')
+        
+   
+          navigate('/')
+          aToken && setAToken('')
+          aToken && localStorage.removeItem('aToken')
+          pToken && setPToken('')
+          pToken && localStorage.removeItem('pToken')
+        
+
     }
 
   return (
@@ -21,6 +29,7 @@ const Navbar = () => {
         </div>
         <h1 className='text-xs font-semibold'>Dashboard Pannel</h1>
         </div>
+        
         <button  onClick={logout} className='cursor-pointer bg-primary text-white text-sm py-2 px-10 rounded-full'>Logout</button>
     </div>
   )

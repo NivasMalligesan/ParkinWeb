@@ -6,11 +6,10 @@ export const AdminContext = createContext();
 
 const AdminContextProvider = (props) => {
     const [aToken, setAToken] = useState(localStorage.getItem('aToken') ? localStorage.getItem('aToken') : '');
-    const backendUrl = import.meta.env.VITE_BACKENDURL;
     const [bookings,setBookings] = useState([])
     const [parking, setParking] = useState([]);
     const [dashData,setDashData] = useState(false)
-
+    const backendUrl = import.meta.env.VITE_BACKENDURL; 
     const getAllParking = async () => {
         try {
             const { data } = await axios.get(`${backendUrl}/api/admin/all-parking`, {
@@ -86,7 +85,6 @@ const AdminContextProvider = (props) => {
     const value = {
         aToken,
         setAToken,
-        backendUrl,
         getAllParking,
         parking,
         bookings,
@@ -95,7 +93,8 @@ const AdminContextProvider = (props) => {
         getAllBooking,
         cancleBooking,
         getDashData,
-        dashData
+        dashData,
+        backendUrl
     };
 
     return (
