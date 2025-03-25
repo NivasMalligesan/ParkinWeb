@@ -11,7 +11,7 @@ const ParkingsList = () => {
     }, [aToken]);
 
     return (
-        <div className="flex-1 py-5">
+        <div className=" ml-20 md:ml-28 lg:ml-65 py-5">
             <h1 className="pl-10 pb-5 text-lg font-medium">All Parkings</h1>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mx-10 gap-4 gap-y-6">
                 {parking.map((item, index) => (

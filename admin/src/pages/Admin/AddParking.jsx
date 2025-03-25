@@ -76,7 +76,7 @@ const AddParking = () => {
     };
     
     return (
-        <form onSubmit={onSubmitHandler} className="p-6 w-full max-w-4xl mx-3 my-3 space-y-6 shadow-xl bg-white rounded-lg">
+        <form onSubmit={onSubmitHandler} className="ml-24 lg:ml-74 my-10 p-6 w-full max-w-4xl mx-4 space-y-6 bg-white rounded-lg">
             <h2 className="text-2xl font-bold text-gray-800">Add Parking</h2>
 
             {/* Image Upload Section */}

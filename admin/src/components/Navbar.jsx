@@ -21,7 +21,7 @@ const Navbar = () => {
     }
 
   return (
-    <div className='flex justify-between items-center px-4 sm:px-10 py-3 border-b border-gray-300 bg-white'>
+    <div className='z-50 sticky top-0  flex justify-between items-center px-4 sm:px-10 py-3 border-b border-gray-300 bg-white'>
         <div>
         <div className='flex items-center gap-2 text-xs'>
         <h1 className='text-3xl cursor-pointer font-medium '>PARKin</h1> 
