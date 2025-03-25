@@ -69,7 +69,7 @@ const ParkingProfile = () => {
   };
 
   return localProfileData && (
-    <div className="flex flex-col gap-4 sm:m-5">
+    <div className="flex flex-col  ml-25 mr-5 md:ml-40 lg:ml-65 py-5 gap-4 sm:m-5">
       {/* Image */}
       <div>
         <img className="w-full sm:max-w-64 sm:max-h-64 rounded-lg object-cover" src={localProfileData.image} alt="Parking" />

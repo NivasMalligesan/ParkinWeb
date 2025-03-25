@@ -11,7 +11,7 @@ const ParkingBookings = () => {
     }
   }, [pToken])
   return (
-    <div className='w-full max-w-6xl m-5 '>
+    <div className='w-full  ml-25 md:ml-40 lg:ml-65 py-5 max-w-6xl m-5 '>
       <p className='mb-3 text-lg font-medium'>All bookings</p>
       <div className='bg-white border text-center border-gray-200 min-h-[50vh] text-sm max-h-[80vh] overflow-y-scroll rounded-xl'>
         <div className='max-sm:hidden grid grid-cols-[0.5fr_2fr_1fr_2fr_1fr_2fr] gap-1 py-3 px-2 border-b border-gray-300'>
