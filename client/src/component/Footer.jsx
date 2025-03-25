@@ -11,7 +11,7 @@ const Footer = () => {
       {/* Social Links */}
       <div className="flex space-x-6">
         <a 
-          href="https://www.linkedin.com/in/your-profile" 
+          href="https://www.linkedin.com/in/nivas-malligesan/" 
           target="_blank" 
           rel="noopener noreferrer"
           className="hover:scale-110 transition-transform"
@@ -20,7 +20,7 @@ const Footer = () => {
         </a>
         
         <a 
-          href="https://www.instagram.com/your-profile" 
+          href="https://www.instagram.com/nivas_ig/profilecard/" 
           target="_blank" 
           rel="noopener noreferrer"
           className="hover:scale-110 transition-transform"
@@ -29,7 +29,7 @@ const Footer = () => {
         </a>
         
         <a 
-          href="https://yourportfolio.com" 
+          href="https://nivas-portfolio-in.netlify.app" 
           target="_blank" 
           rel="noopener noreferrer"
           className="hover:scale-110 transition-transform"
