@@ -17,7 +17,7 @@ const Allbookings = () => {
  
     
   return (
-    <div className='w-full  ml-20 md:ml-40 lg:ml-65 py-5 max-w-6xl m-5' >
+    <div className='w-full  ml-25 md:ml-40 lg:ml-65 py-5 max-w-6xl m-5' >
       <p className='mb-3 text-lg font-medium'>All Bookings</p>
       <div className='bg-white shadow rounded text-sm max-h-[80vh] min-h-[60vh] overflow-y-scroll'>
         <div className='text-center hidden sm:grid grid-cols-[0.5fr_3fr_3fr_3fr_1fr_3fr] grid-flow-col py-3 px-6 border-b border-gray-300'>

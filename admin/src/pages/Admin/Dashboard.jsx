@@ -17,7 +17,7 @@ const Dashboard = () => {
 
 
   return (
-    <div className='m-5  ml-20 md:ml-40 lg:ml-65 py-5 w-full'>
+    <div className='m-5 ml-25 md:ml-40 lg:ml-65 py-5 w-full'>
 
 
       <div className='flex-col'>
