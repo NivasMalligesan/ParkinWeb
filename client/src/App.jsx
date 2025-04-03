@@ -2,7 +2,6 @@ import { Routes, Route } from 'react-router-dom';
 import './App.css';
 import Home from './pages/Home';
 import Parkings from './pages/Parkings';
-import About from './pages/About';
 import Login from './pages/Login';
 import Contact from './pages/Contact';
 import MyProfile from './pages/MyProfile';
@@ -24,7 +23,6 @@ function App() {
           <Route path="/parkings" element={<Parkings />} />
           <Route path="/parkings/:features" element={<Parkings />} />
           <Route path="/contact" element={<Contact />} />
-          <Route path="/about" element={<About />} />
           <Route path="/login" element={<Login />} />
           <Route path="/my-profile" element={<MyProfile />} />
           <Route path="/my-bookings" element={<MyBookings />} />
