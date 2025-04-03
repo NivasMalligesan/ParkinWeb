@@ -11,7 +11,6 @@ const Parkings = () => {
   const [filterPark, setFilterPark] = useState([]);
   const navigate = useNavigate();
   const [showFilter,setShowFilter] = useState(false);
-  
 
   
 
@@ -38,14 +37,14 @@ const Parkings = () => {
 
   return (
     <div>
-      <p className='text-gray-600 fixed z-10'>Browse Through the Parkings</p>
+      <p className='text-gray-600 sm:fixed z-10 '>Browse Through the Parkings</p>
       <div className='flex flex-col sm:flex-row items-start gap-5 mt-5'>
         <button onClick={()=>setShowFilter(prev => !prev)} className={`flex gap-2 w-full items-center justify-center py-3 px-3 border rounded text-sm transition-all cursor-pointer sm:hidden  ${showFilter ? 'bg-primary text-white ' : ''}`}><FilterIcon size={18}/> Filters</button>
         <motion.div
         initial={{opacity:0,x:-100}}
         animate={{opacity:1,x:0}}
         viewport={{once:true}}
-        className={` flex-1 flex-col gap-4 text-sm text-gray-600  fixed top-30 z-10 ${showFilter ? 'flex ' : 'hidden sm:flex'} `}>
+        className={` flex-1 flex-col gap-4 text-sm text-gray-600 sm:fixed top-30 ${showFilter ? 'flex ' : 'hidden sm:flex'} `}>
           <p onClick={()=>features === 'Parkings Near Me' ?navigate('/parkings') : navigate('/parkings/Parkings Near Me')} className={`w-[94vw] sm:w-auto pl-3 py-2 pr-16 border border-gray-300 rounded transition-all cursor-pointer ${features=== "Parkings Near Me" ? "bg-primary text-white " : ""}`}>Parkings Near Me</p>
           <p onClick={()=>features === 'Rent Parking' ?navigate('/parkings') : navigate('/parkings/Rent Parking')} className={`w-[94vw] sm:w-auto pl-3 py-2 pr-16 border border-gray-300 rounded transition-all cursor-pointer ${features=== "Rent Parking" ? "bg-primary text-white " : ""}`}>Rent Parking</p>
           <p onClick={()=>features === 'EV Charging' ?navigate('/parkings') : navigate('/parkings/EV Charging')} className={`w-[94vw] sm:w-auto pl-3 py-2 pr-16 border border-gray-300 rounded transition-all cursor-pointer ${features=== "EV Charging" ? "bg-primary text-white " : ""}`}>EV Charging</p>
