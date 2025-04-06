@@ -34,6 +34,10 @@ const Navbar = () => {
             <li className='py-1 '>Parkings</li>
             <hr className='border-none outline-none h-0.5 bg-primary duration-200 w-3/5 m-auto hidden '/>
             </NavLink>
+            <NavLink to="/my-bookings">
+            <li className='py-1 '>My Bookings</li>
+            <hr className='border-none outline-none h-0.5 bg-primary duration-200 w-3/5 m-auto hidden'/>
+            </NavLink>
             <NavLink to="/contact">
             <li className='py-1 '>Contact</li>
             <hr className='border-none outline-none h-0.5 bg-primary duration-200 w-3/5 m-auto hidden'/>
@@ -66,6 +70,9 @@ const Navbar = () => {
                         </NavLink>
                         <NavLink to={'/parkings'} onClick={() => setShowMenu(false)} className={`${location.pathname === '/parkings' ? 'bg-primary cursor-pointer text-white w-full  py-2 rounded' : 'cursor-pointer w-full rounded'}`}>
                             <p className="px-4 py-1 rounded ">All Parkings</p>
+                        </NavLink>
+                        <NavLink to={'/my-bookings'} onClick={() => setShowMenu(false)} className={`${location.pathname === '/my-bookings' ? 'bg-primary cursor-pointer text-white w-full  py-2 rounded' : 'cursor-pointer w-full rounded'}`}>
+                            <p className="px-4 py-1 rounded">My Bookings</p>
                         </NavLink>
                         <NavLink to={'/contact'} onClick={() => setShowMenu(false)} className={`${location.pathname === '/contact' ? 'bg-primary cursor-pointer text-white w-full  py-2 rounded' : 'cursor-pointer w-full rounded'}`}>
                             <p className="px-4 py-1 rounded">Contact</p>

@@ -125,7 +125,8 @@ const MyParkings = () => {
       <div className='mt-4 space-y-6'>
       {Array.isArray(booking) && booking.length > 0 ? (
       booking.map((item, index) => (
-    <div className='grid grid-cols-[2fr_2fr] sm:gap-4 lg:flex bg-gray-50 shadow-md rounded-lg overflow-hidden pl-2 pt-2 ' key={index}>
+     <div className='sm:flex justify-between bg-gray-50 shadow-md rounded-lg overflow-hidden pl-2 pt-2 '>
+    <div className='grid grid-cols-[2fr_2fr] sm:gap-4 lg:flex ' >
       <img className='w-full h-full sm:w-40 sm:h-40 rounded object-cover' src={item.parkData?.image} alt={item.parkData?.name || "Parking Image"} />
       <div className='flex-1 p-4'>
         <p  className='text-lg font-semibold text-gray-900'>{item.parkData?.name}</p>
@@ -134,6 +135,7 @@ const MyParkings = () => {
         <p className='text-sm text-gray-500'>{item.parkData?.address}</p>
         <p className='text-gray-700 mt-2 flex items-center gap-2'><FaCalendarAlt />Date And Time :  {slotDateFormate(item.slotDate)} | {item.slotTime}</p>
       </div>
+    </div>
       <div className='flex flex-col justify-center items-end p-4 gap-3 mt-2'>
         {
           !item.cancelled && item.Payment &&
@@ -141,11 +143,16 @@ const MyParkings = () => {
         }
       {
           !item.cancelled && !item.Payment && 
-        <button onClick={()=>bookingRazorpay(item._id)} className='w-full sm:w-40 py-2 rounded border hover:bg-[#14213d] hover:text-white transition-all duration-300'>Pay Online</button>
+          <div className='flex  w-full gap-3'>
+
+            <button onClick={()=>bookingRazorpay(item._id)} className='w-full sm:w-40 py-2 rounded border hover:bg-[#14213d] hover:text-white transition-all duration-300'>Pay Online</button>
+            <button onClick={()=>bookingRazorpay(item._id)} className='w-full sm:w-40 py-2 rounded border hover:bg-[#14213d] hover:text-white transition-all duration-300'>View Details</button>
+          </div>
       }{
           !item.cancelled && !item.Payment && !item.isCompleted &&
         <button onClick={()=>cancelBooking(item._id)} className='w-full sm:w-40 py-2 rounded border hover:bg-red-600 hover:text-white transition-all duration-300'>Cancel Booking</button>
         }
+      
         {
           item.cancelled &&
         <button  className='w-full sm:w-40 py-2 rounded border border-red-600 text-red-600 transition-all duration-300'>Canceled Booking</button>
@@ -154,8 +161,9 @@ const MyParkings = () => {
           item.isCompleted && 
           <button  className='w-full sm:w-40 py-2 rounded border border-green-600 text-green-600 transition-all duration-300'>Completed</button>
         }
-        </div>
-    </div>
+      </div>
+
+     </div>   
   ))
       ) : (
         <p className="text-center text-gray-500 mt-4">No bookings found.</p>
