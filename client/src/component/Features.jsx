@@ -13,17 +13,17 @@ const Features = () => {
       whileInView={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
       viewport={{ once: true }} 
-      className='flex flex-col items-center gap-4 py-16 text-gray-800 overflow-hidden' 
+      className='flex flex-col sm:items-center sm:gap-4 py-5 px-2 sm:py-16 text-gray-800 overflow-hidden' 
       id='features'
     >
-      <h1 className='text-3xl font-medium'>Find By Features</h1>
-      <p className='sm:w-1/3 text-center text-sm'>
+      <h1 className='sm:text-3xl font-medium'>Find By Features</h1>
+      <p className='sm:w-1/3 hidden sm:block text-center text-sm'>
         Easily search for parking spaces With Our Extensive List of Features, Schedule Your Parking Hassle-free!
       </p>
 
       {/* Scrolling Container with Inner Shadow */}
       <div 
-        className='relative w-full overflow-hidden mt-5 before:absolute before:top-0 before:left-0 before:h-full before:w-15 before:bg-gradient-to-r before:from-white before:to-transparent before:z-10 after:absolute after:top-0 after:right-0 after:h-full after:w-15 after:bg-gradient-to-l after:from-white after:to-transparent after:z-10'
+        className='relative w-full overflow-hidden sm:mt-5 before:absolute before:top-0 before:left-0 before:h-full before:w-15 before:bg-gradient-to-r before:from-white before:to-transparent before:z-10 after:absolute after:top-0 after:right-0 after:h-full after:w-15 after:bg-gradient-to-l after:from-white after:to-transparent after:z-10'
         onMouseEnter={() => setSpeed(40)} // Slow down on hover
         onMouseLeave={() => setSpeed(20)} // Normal speed when not hovered
       >
