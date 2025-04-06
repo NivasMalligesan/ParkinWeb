@@ -21,7 +21,7 @@ const Header = () => {
             <div className='flex items-center gap-5'>
                 <img src={assets.group_profiles} alt="" className="w-15  sm:w-32 h-auto" />
                 <p className='text-white sm:hidden text-xs'>
-                  100+ Plus Trusted CUstomers
+                  100+ Plus Trusted Customers
                 </p>
                 <p className='text-white hidden sm:block text-sm'>
                     Book parking spots in seconds <br className='hidden sm:block'/> Say goodbye to parking hassles with real-time availability!
