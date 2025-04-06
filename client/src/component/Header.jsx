@@ -11,23 +11,26 @@ const Header = () => {
     whileInView={{ opacity: 1, scale: 1 }} // Animation when in view
     transition={{ duration: 0.5 }}
     viewport={{ once: true,}} // Smooth transition
-    className='sm:mt-20 mt-5 flex md:flex-row  bg-primary rounded-lg px-6 md:px-10 lg:px-20 relative'
+    className='sm:mt-20 mt-5 flex md:flex-row  bg-primary rounded-lg pl-6 md:px-10 lg:px-20 relative'
     >
         {/* Left side of the header */}
         <div className='w-1/2 flex flex-col items-start justify-center gap-4 py-10 sm:py-20 md:py-[5vw]'>
-            <p className=' text-xl md:text-4xl lg:text-5xl text-white font-semibold leading-tight'>
+            <p className='text-lg sm:hidden text-nowrap  md:text-4xl lg:text-5xl text-white font-semibold leading-tight'>
+                Find, Reserve and Park<br /> Parking at Your Fingertips
+            </p>
+            <p className='text-lg hidden sm:block  md:text-4xl lg:text-5xl text-white font-semibold leading-tight'>
                 Find, Reserve and Park<br /> Parking at Your Fingertips
             </p>
             <div className='flex items-center gap-5'>
-                <img src={assets.group_profiles} alt="" className="w-15  sm:w-32 h-auto" />
-                <p className='text-white sm:hidden text-xs'>
-                  100+ Plus Trusted Customers
+                <img src={assets.group_profiles} alt="" className="w-12  sm:w-32 h-auto" />
+                <p className='text-white sm:hidden text-[12px] text-nowrap'>
+                  100+ Plus Customers
                 </p>
                 <p className='text-white hidden sm:block text-sm'>
                     Book parking spots in seconds <br className='hidden sm:block'/> Say goodbye to parking hassles with real-time availability!
                 </p>
             </div>
-            <a href="#features" className=' flex items-center gap-2 bg-white text-primary px-4 py-2 rounded-lg font-semibold group'>
+            <a href="#features" className='mt-2 flex items-center gap-2 bg-white text-primary px-2 py-1 rounded-lg text-sm font-semibold group'>
                 Book Parking <FaArrowRight className='group-hover:-rotate-45 duration-300' />
             </a>
         </div>
