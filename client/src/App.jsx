@@ -11,6 +11,7 @@ import Navbar from './component/Navbar';
 import Footer from './component/Footer';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import MobileNavbar from './component/MobileNavbar';
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
           <Route path="/my-bookings" element={<MyBookings />} />
           <Route path="/bookings/:parkId" element={<Bookings />} />
         </Routes>
+        <MobileNavbar/>
         <Footer />
       </div>
     </>
