@@ -15,7 +15,7 @@ const MobileNavbar = () => {
           } flex flex-col items-center w-full gap-1 rounded p-3 cursor-pointer`}
         >
           <Home className="text-primary" size={20} />
-          <p className="text-xs">Home</p>
+          <p className="text-[12px] text-nowrap">Home</p>
         </NavLink>
 
         <NavLink
@@ -25,7 +25,7 @@ const MobileNavbar = () => {
           } flex flex-col items-center w-full gap-1 rounded p-3 cursor-pointer`}
         >
           <ParkingCircle className="text-primary" size={20} />
-          <p className="text-xs">All Parkings</p>
+          <p className="text-[12px] text-nowrap">All Parkings</p>
         </NavLink>
 
         <NavLink
@@ -35,7 +35,7 @@ const MobileNavbar = () => {
           } flex flex-col items-center w-full gap-1 rounded p-3 cursor-pointer`}
         >
           <HistoryIcon className="text-primary" size={20} />
-          <p className="text-xs">My Bookings</p>
+          <p className="text-[12px] text-nowrap">My Bookings</p>
         </NavLink>
 
         <NavLink
@@ -45,7 +45,7 @@ const MobileNavbar = () => {
           } flex flex-col items-center w-full gap-1 rounded p-3 cursor-pointer`}
         >
           <Contact className="text-primary" size={20} />
-          <p className="text-xs">Contact</p>
+          <p className="text-[12px] text-nowrap">Contact</p>
         </NavLink>
 
         <NavLink
@@ -55,7 +55,7 @@ const MobileNavbar = () => {
           } flex flex-col items-center w-full gap-1 rounded p-3 cursor-pointer`}
         >
           <User className="text-primary" size={20} />
-          <p className="text-xs">Profile</p>
+          <p className="text-[12px] text-nowrap">Profile</p>
         </NavLink>
       </ul>
     </div>
