@@ -13,10 +13,10 @@ const TopParkings = () => {
       whileInView={{ opacity: 1, y: 0 }} // Animation when in view
       transition={{ duration: 0.5 }}
       viewport={{ once: true }}
-      className="flex flex-col items-center gap-4 my-10 text-gray-900 md:mx-10"
+      className="flex flex-col sm:items-center gap-4 sm:my-10 text-gray-900 md:mx-10"
     >
-      <h1 className="text-3xl font-medium">Top Parkings To Book</h1>
-      <p className="sm:w-1/3 text-center text-sm">
+      <h1 className="sm:text-3xl px-2 font-medium">Top Parkings To Book</h1>
+      <p className="hidden sm:block sm:w-1/3 text-center text-sm">
         Simply browse through our extensive list of Trusted Partners
       </p>
 

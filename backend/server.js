@@ -5,7 +5,7 @@ import connectDB from './config/mongodb.js';
 import connectCloudinary from './config/cloudinary.js';
 import adminRouter from './routes/adminRoute.js';
 import parkingRouter from './routes/parkingRoute.js';
-import userRouter from './routes/userRoutes.js';  // Ensure file name matches
+import userRouter from './routes/userRoutes.js'; 
 
 // App Config
 const app = express();

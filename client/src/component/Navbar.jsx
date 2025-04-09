@@ -8,7 +8,6 @@ import { AppContext } from '../context/AppContext';
 const Navbar = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const [showMenu, setShowMenu] = useState(false);
     const {token,setToken,userData} = useContext(AppContext);
 
     const logout = ()=>{
@@ -57,9 +56,6 @@ const Navbar = () => {
                     </div> :
                     <button onClick={() => navigate('/login')} className='cursor-pointer bg-primary text-white px-8 py-3 rounded-full font-light hidden md:block '>Create Account</button>
                 }
-                <img src={assets.menu_icon} className='cursor-pointer w-6 md:hidden' alt="" onClick={() => setShowMenu(true)} />
-                {/* Mobile Menu */}
-                
             </div>
         </motion.div>
     );
