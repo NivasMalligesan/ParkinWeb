@@ -10,9 +10,9 @@ const Contact = () => {
           <div>
             <h1 className='text-xl '>Management Team</h1>
           </div>
-          <div className='mt-4 flex gap-4 bg-white '>
+          <div className='mt-4 flex-row sm:flex-col  gap-4 bg-white '>
             <img src={assets.Profile} className='flex-1 w-160 h-90 object object-cover rounded-2xl shadow' alt="" />
-            <div className='flex flex-col p-5 w-2/4'>
+            <div className='flex flex-col p-5 sm:w-2/4'>
             <div >
               <h1 className='text-xl font-medium'>Nivas Malligsan - Developer of Parkin</h1>
               <p className='text-sm text-gray-500'>Parkin Admin</p>
