@@ -12,7 +12,7 @@ const AdminContextProvider = (props) => {
     const backendUrl = import.meta.env.VITE_BACKENDURL; 
     const getAllParking = async () => {
         try {
-            const { data } = await axios.get(`${backendUrl}/api/admin/all-parking`, {
+            const { data } = await axios.get(`${backendUrl}/api/admin/all-parking`, { 
                 headers: { aToken } // Correctly pass the token in headers
             });
             if (data.success) {

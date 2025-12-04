@@ -27,7 +27,7 @@ const updateUserProfileData = async () => {
           `${backendUrl}/api/user/update-profile`,
           formData,
           {
-             headers: {token}
+            headers: {token}
           }
       );
 

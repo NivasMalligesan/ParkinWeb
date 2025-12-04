@@ -86,6 +86,7 @@ const loginUser = async (req, res) => {
   }
 };
 
+
 // API to Get User Profile Data
 const getProfile = async (req, res) => {
   try {
