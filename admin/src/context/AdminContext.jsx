@@ -9,7 +9,7 @@ const AdminContextProvider = (props) => {
     const [bookings,setBookings] = useState([])
     const [parking, setParking] = useState([]);
     const [dashData,setDashData] = useState(false)
-    const backendUrl = import.meta.env.VITE_BACKENDURL; 
+    const backendUrl = import.meta.env.VITE_BACKEND_URL; 
     const getAllParking = async () => {
         try {
             const { data } = await axios.get(`${backendUrl}/api/admin/all-parking`, { 
