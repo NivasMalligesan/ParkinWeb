@@ -13,28 +13,35 @@ const AppContextProvider = ({ children }) => {
     const [parking, setParking] = useState([]);
     const [token, setToken] = useState(storedToken || null);
     const [userData, setUserData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    // -------------------------------
     // Fetch Parking List
-    // -------------------------------
     const getParkingData = async () => {
         try {
+            setLoading(true);
             const { data } = await axios.get(`${backendUrl}/api/parking/parking-list`);
+            
             if (data.success) {
                 setParking(data.parking);
+                setError(null);
             } else {
+                setError(data.message);
                 toast.error(data.message || "Failed to load parking data");
             }
         } catch (error) {
             console.error(error);
+            setError(error.message);
             toast.error(error.response?.data?.message || error.message);
+        } finally {
+            setLoading(false);
         }
     };
 
-    // -------------------------------
     // Fetch User Profile
-    // -------------------------------
     const loadUserProfileData = async () => {
+        if (!token) return;
+        
         try {
             const { data } = await axios.get(`${backendUrl}/api/user/get-profile`, {
                 headers: { token },
@@ -51,22 +58,19 @@ const AppContextProvider = ({ children }) => {
         }
     };
 
-    // -------------------------------
     // Load Parking Data Once
-    // -------------------------------
     useEffect(() => {
         if (!backendUrl) {
             console.error("❌ VITE_BACKEND_URL is missing.");
-            toast.error("Backend URL not found");
+            setError("Backend URL not found");
+            setLoading(false);
             return;
         }
 
         getParkingData();
     }, [backendUrl]);
 
-    // -------------------------------
     // Load Profile When Token Exists
-    // -------------------------------
     useEffect(() => {
         if (token) {
             loadUserProfileData();
@@ -75,9 +79,7 @@ const AppContextProvider = ({ children }) => {
         }
     }, [token]);
 
-    // -------------------------------
     // Context Value
-    // -------------------------------
     const value = {
         parking,
         currencySymbol,
@@ -90,6 +92,9 @@ const AppContextProvider = ({ children }) => {
         userData,
         setUserData,
         loadUserProfileData,
+
+        loading,
+        error
     };
 
     return (

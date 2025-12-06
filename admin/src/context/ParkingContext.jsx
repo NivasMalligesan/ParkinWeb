@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 export const ParkingContext = createContext();
 
 const ParkingContextProvider = ({ children }) => {
-    const backendUrl = import.meta.env.VITE_BACKENDURL;
+    const backendUrl = import.meta.env.VITE_BACKEND_URL;
     const [pToken, setPToken] = useState(localStorage.getItem('pToken')?localStorage.getItem('pToken') : '');
     const [bookings, setBookings] = useState([]);
     const [dashData,setDashData] = useState([]);

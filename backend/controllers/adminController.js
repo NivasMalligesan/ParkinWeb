@@ -19,40 +19,51 @@ const addParking = async (req, res) => {
 
         // Validate Required Fields
         if (!name || !email || !password || !location || !address || !pricePerHour || !totalCapacity || !contact || !description) {
-            return res.status(400).json({ message: "All required fields must be provided" });
+            return res.status(400).json({ success: false, message: "All required fields must be provided" });
         }
 
         // Validate Email
         if (!validator.isEmail(email)) {
-            return res.status(400).json({ message: "Please enter a valid email" });
+            return res.status(400).json({ success: false, message: "Please enter a valid email" });
         }
 
         // Validate Strong Password
         if (password.length < 8) {
-            return res.status(400).json({ message: "Please enter a strong password" });
+            return res.status(400).json({ success: false, message: "Password must be at least 8 characters" });
+        }
+
+        // Check if parking already exists
+        const existingParking = await parkingModel.findOne({ email });
+        if (existingParking) {
+            return res.status(400).json({ success: false, message: "Parking with this email already exists" });
         }
 
         // Hash Password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // Upload Image to Cloudinary
+        // Upload Image to Cloudinary - FIXED
         let imageUrl = null;
         if (imageFile) {
-            const result = await cloudinary.uploader.upload(imageFile.path, {
-                resource_type: "image"
+            // Convert buffer to base64 for Cloudinary
+            const b64 = Buffer.from(imageFile.buffer).toString("base64");
+            const dataURI = `data:${imageFile.mimetype};base64,${b64}`;
+            
+            const result = await cloudinary.uploader.upload(dataURI, {
+                resource_type: "image",
+                folder: "parkings"
             });
             imageUrl = result.secure_url;
         } else {
-            return res.status(400).json({ message: "Image is required" });
+            return res.status(400).json({ success: false, message: "Image is required" });
         }
 
         // Parse Features Safely
         let parsedFeatures;
         try {
-            parsedFeatures = JSON.parse(features);
+            parsedFeatures = typeof features === 'string' ? JSON.parse(features) : features;
         } catch (err) {
-            return res.status(400).json({ message: "Invalid features format (must be JSON)" });
+            return res.status(400).json({ success: false, message: "Invalid features format" });
         }
 
         // Create Parking Entry
@@ -68,17 +79,23 @@ const addParking = async (req, res) => {
             totalCapacity,
             description,
             contact,
-            available: true, // Default value
+            available: true,
             date: Date.now(),
         };
 
         const newParking = await parkingModel.create(parkingData);
-        await newParking.save();
 
-        res.status(201).json({ success: true, message: "Parking added successfully" });
+        res.status(201).json({ 
+            success: true, 
+            message: "Parking added successfully",
+            parking: newParking 
+        });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: error.message });
+        console.error("Error adding parking:", error);
+        res.status(500).json({ 
+            success: false, 
+            message: "Server error: " + error.message 
+        });
     }
 };
 

@@ -12,49 +12,58 @@ const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    // Validation: Check missing details
+    // Validation
     if (!name || !email || !password) {
-      return res.status(400).json({ success: false, message: "Missing Details" });
+      return res.status(400).json({ success: false, message: "All fields are required" });
     }
 
-    // Validation: Check valid email
     if (!validator.isEmail(email)) {
-      return res.status(400).json({ success: false, message: "Enter a valid email" });
+      return res.status(400).json({ success: false, message: "Invalid email format" });
     }
 
-    // Validation: Strong password
     if (password.length < 8) {
-      return res.status(400).json({ success: false, message: "Enter a strong password (min 8 characters)" });
+      return res.status(400).json({ success: false, message: "Password must be at least 8 characters" });
     }
 
-    // Check if user already exists
+    // Check existing user
     const existingUser = await userModel.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ success: false, message: "User already exists" });
+      return res.status(409).json({ success: false, message: "User already exists" });
     }
 
-    // Hashing user password
+    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Creating user data
-    const userData = {
+    // Create user
+    const newUser = await userModel.create({
       name,
       email,
       password: hashedPassword,
-    };
+      image: "https://res.cloudinary.com/your-cloud-name/image/upload/v1/default-profile",
+      phone: "",
+      address: "",
+      gender: "Not Selected",
+      dob: ""
+    });
 
-    // Save user to database
-    const newUser = new userModel(userData);
-    const user = await newUser.save();
+    // Generate token
+    const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
-    // Generate JWT Token
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-
-    res.status(201).json({ success: true, token, message: "User registered successfully" });
+    res.status(201).json({ 
+      success: true, 
+      token, 
+      message: "User registered successfully",
+      user: {
+        id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+        image: newUser.image
+      }
+    });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
@@ -89,22 +98,36 @@ const loginUser = async (req, res) => {
 
 // API to Get User Profile Data
 const getProfile = async (req, res) => {
-  try {
-    const { userId } = req.body;
-    if (!userId) {
-      return res.status(400).json({ success: false, message: "User ID is required" });
-    }
+    try {
+        const { userId } = req.body;
+        
+        if (!userId) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "User ID is required" 
+            });
+        }
 
-    const userData = await userModel.findById(userId).select("-password");
-    if (!userData) {
-      return res.status(404).json({ success: false, message: "User not found" });
-    }
+        const userData = await userModel.findById(userId).select("-password");
+        
+        if (!userData) {
+            return res.status(404).json({ 
+                success: false, 
+                message: "User not found" 
+            });
+        }
 
-    res.json({ success: true, userData });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: error.message });
-  }
+        res.json({ 
+            success: true, 
+            userData 
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ 
+            success: false, 
+            message: "Server error" 
+        });
+    }
 };
 
 // API to Update User Profile
@@ -343,27 +366,39 @@ const razorpayInstance = new razorpay({
 const paymentRazorpay = async (req, res) => {
   try {
     const { bookingId } = req.body;
-    console.log("Received Booking ID:", bookingId);
+    
+    if (!bookingId) {
+      return res.status(400).json({ success: false, message: 'Booking ID is required' });
+    }
 
     const bookingData = await bookingModel.findById(bookingId);
-    console.log("Booking Data:", bookingData);
-
-    if (!bookingData || bookingData.cancelled) {
+    
+    if (!bookingData) {
       return res.status(404).json({ success: false, message: 'Booking not found' });
     }
 
+    if (bookingData.cancelled) {
+      return res.status(400).json({ success: false, message: 'Booking is cancelled' });
+    }
+
+    if (bookingData.Payment) {
+      return res.status(400).json({ success: false, message: 'Payment already completed' });
+    }
+
     const options = {
-      amount: bookingData.amount * 100, // Amount in paisa
+      amount: Math.round(bookingData.amount * 100), // Ensure amount is in paisa
       currency: process.env.CURRENCY || 'INR',
       receipt: bookingId,
+      payment_capture: 1
     };
 
-    console.log("Razorpay Options:", options);
-
     const order = await razorpayInstance.orders.create(options);
-    console.log("Order Created:", order);
 
-    res.json({ success: true, order });
+    res.json({ 
+      success: true, 
+      order,
+      key: process.env.RAZORPAY_KEY_ID // Send key to frontend
+    });
 
   } catch (error) {
     console.error("Error in payment:", error);

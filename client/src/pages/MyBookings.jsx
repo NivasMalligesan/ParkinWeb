@@ -46,65 +46,71 @@ const MyParkings = () => {
     }
   }
 
-  const initPay = ({ order }) => {
-    const options = {
-      key: import.meta.env.VITE_RAZORPAY_KEY_ID,  // Ensure this is set
-      amount: order.amount,  // Razorpay expects amount in the smallest unit (paise)
-      currency: order.currency,
-      name: "Booking Payment",
-      description: "Parking Slot Booking Payment",
-      order_id: order.id,
-      receipt: order.receipt,  // Fixed spelling
-      handler: async (response) => {
-        console.log("Payment Successful:", response);
-        try {
-          const { data } = await axios.post(backendUrl + '/api/user/verifyRazorpay', response, { headers: { token } });
-          if (data.success) {
-            toast.success("Payment successful!");
-            getUserBooking(); // Refresh the bookings list
-            navigate('/my-bookings');
-          }
-        } catch (error) {
-          console.error(error);
-          toast.error(error.message);
+  const initPay = ({ order, key }) => {
+  const options = {
+    key: key || import.meta.env.VITE_RAZORPAY_KEY_ID,
+    amount: order.amount,
+    currency: order.currency,
+    name: "PARKin Booking",
+    description: "Parking Slot Booking Payment",
+    order_id: order.id,
+    handler: async (response) => {
+      try {
+        const { data } = await axios.post(
+          `${backendUrl}/api/user/verifyRazorpay`, 
+          response, 
+          { headers: { token } }
+        );
+        
+        if (data.success) {
+          toast.success("Payment successful!");
+          getUserBooking();
+        } else {
+          toast.error(data.message || "Payment verification failed");
         }
+      } catch (error) {
+        console.error(error);
+        toast.error("Payment verification error");
       }
-    };
-  
-    const rzp = new window.Razorpay(options);
-  
-    // Handle payment failure
-    rzp.on("payment.failed", (response) => {
-      console.error("Payment Failed:", response);
-      toast.error("Payment failed! Please try again.");
-    });
-  
-    rzp.open();
-  };
-  
-  const bookingRazorpay = async (bookingId) => {
-    try {
-      if (!bookingId) {
-        console.error("Invalid booking ID");
-        return;
-      }
-  
-      const { data } = await axios.post(
-        `${backendUrl}/api/user/payment-razorpay`,
-        { bookingId },
-        { headers: { token } }
-      );
-  
-      if (data.success) {
-        console.log("Order Data:", data.order);
-        initPay({ order: data.order });
-      } else {
-        console.error("Payment order creation failed:", data.message);
-      }
-    } catch (error) {
-      console.error("Error in bookingRazorpay:", error.response?.data || error.message);
+    },
+    theme: {
+      color: "#14213d"
     }
   };
+
+  const rzp = new window.Razorpay(options);
+
+  rzp.on("payment.failed", (response) => {
+    toast.error(`Payment failed: ${response.error.description}`);
+  });
+
+  rzp.open();
+};
+
+const bookingRazorpay = async (bookingId) => {
+  try {
+    if (!window.Razorpay) {
+      toast.error("Razorpay SDK not loaded");
+      return;
+    }
+
+    const { data } = await axios.post(
+      `${backendUrl}/api/user/payment-razorpay`,
+      { bookingId },
+      { headers: { token } }
+    );
+
+    if (data.success) {
+      initPay({ order: data.order, key: data.key });
+    } else {
+      toast.error(data.message || "Failed to create payment order");
+    }
+  } catch (error) {
+    console.error("Error in bookingRazorpay:", error);
+    toast.error(error.response?.data?.message || "Payment failed");
+  }
+};
+
   
 
 
