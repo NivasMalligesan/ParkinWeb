@@ -2,7 +2,7 @@ import React, { useContext, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { motion } from "motion/react"
 import { AppContext } from '../context/AppContext';
-import SafeImage from './SafeImage';
+import { FaUserCircle } from 'react-icons/fa';
 
 const Navbar = () => {
     const navigate = useNavigate();
@@ -13,6 +13,25 @@ const Navbar = () => {
         setToken(null);
         setShowDropdown(false);
         navigate('/');
+    };
+
+    // Helper function for user image
+    const getUserImage = () => {
+        if (!userData?.image || userData.image === 'undefined') {
+            return <FaUserCircle className="w-8 h-8 text-gray-500" />;
+        }
+        
+        return (
+            <img 
+                src={userData.image} 
+                alt={userData.name || "User"} 
+                className="w-8 h-8 rounded-full object-cover border border-gray-300"
+                onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.style.display = 'none';
+                }}
+            />
+        );
     };
 
     return (
@@ -72,13 +91,8 @@ const Navbar = () => {
                             className='flex items-center gap-2 cursor-pointer focus:outline-none'
                             aria-label="User menu"
                         >
-                            <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-300">
-                                <SafeImage
-                                    src={userData.image}
-                                    alt={userData.name}
-                                    className="w-full h-full object-cover"
-                                    fallbackType="user"
-                                />
+                            <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-300 flex items-center justify-center bg-gray-100">
+                                {getUserImage()}
                             </div>
                             <span className='hidden md:inline text-sm font-medium text-gray-700'>
                                 {userData.name?.split(' ')[0] || 'User'}

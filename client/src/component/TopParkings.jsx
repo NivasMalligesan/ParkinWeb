@@ -3,13 +3,27 @@ import { useNavigate } from "react-router-dom";
 import { AppContext } from "../context/AppContext";
 import { motion } from "framer-motion";
 import { FaStar, FaMapMarkerAlt } from 'react-icons/fa';
-import SafeImage from "../components/SafeImage";
 
 const TopParkings = () => {
   const navigate = useNavigate();
   const { parking, currencySymbol } = useContext(AppContext);
 
-  // If no parking data yet
+  // Helper function to get safe image URL
+  const getSafeImageUrl = (url, name) => {
+    if (!url || url === 'undefined' || url === 'null' || url.includes('undefined')) {
+      const seed = encodeURIComponent(name || 'parking');
+      return `https://api.dicebear.com/7.x/shapes/svg?seed=${seed}&backgroundColor=3B82F6`;
+    }
+    return url;
+  };
+
+  // Handle image error
+  const handleImageError = (e, name) => {
+    e.target.onerror = null;
+    const seed = encodeURIComponent(name || 'parking');
+    e.target.src = `https://api.dicebear.com/7.x/shapes/svg?seed=${seed}&backgroundColor=3B82F6`;
+  };
+
   if (!parking || parking.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] px-4">
@@ -53,11 +67,11 @@ const TopParkings = () => {
             className="group cursor-pointer w-full bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-lg transition-all duration-300 border border-gray-100"
           >
             <div className="relative h-48 md:h-52 overflow-hidden">
-              <SafeImage
-                src={item.image}
+              <img
+                src={getSafeImageUrl(item.image, item.name)}
                 alt={item.name}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                fallbackType="parking"
+                onError={(e) => handleImageError(e, item.name)}
               />
               <div className={`absolute top-3 right-3 px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-2 ${item.available ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                 <span className={`w-2 h-2 rounded-full ${item.available ? 'bg-green-500' : 'bg-red-500'}`}></span>
