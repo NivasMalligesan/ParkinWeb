@@ -1,3 +1,4 @@
+// src/context/AppContext.jsx
 import { createContext, useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -6,15 +7,19 @@ export const AppContext = createContext();
 
 const AppContextProvider = ({ children }) => {
     const currencySymbol = "₹";
-    const backendUrl = import.meta.env.VITE_BACKEND_URL;
+    // Use VITE_BACKEND_URL from environment
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || "https://parkinserver.onrender.com";
 
     const storedToken = localStorage.getItem("token");
+    const storedUserData = localStorage.getItem("userData");
 
     const [parking, setParking] = useState([]);
     const [token, setToken] = useState(storedToken || null);
-    const [userData, setUserData] = useState(null);
+    const [userData, setUserData] = useState(storedUserData ? JSON.parse(storedUserData) : null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    console.log("Backend URL:", backendUrl); // Debug log
 
     // Fetch Parking List
     const getParkingData = async () => {
@@ -30,9 +35,9 @@ const AppContextProvider = ({ children }) => {
                 toast.error(data.message || "Failed to load parking data");
             }
         } catch (error) {
-            console.error(error);
+            console.error("Error fetching parking data:", error);
             setError(error.message);
-            toast.error(error.response?.data?.message || error.message);
+            toast.error("Failed to load parking data. Please check backend connection.");
         } finally {
             setLoading(false);
         }
@@ -40,7 +45,10 @@ const AppContextProvider = ({ children }) => {
 
     // Fetch User Profile
     const loadUserProfileData = async () => {
-        if (!token) return;
+        if (!token) {
+            setUserData(null);
+            return;
+        }
         
         try {
             const { data } = await axios.get(`${backendUrl}/api/user/get-profile`, {
@@ -49,34 +57,25 @@ const AppContextProvider = ({ children }) => {
 
             if (data.success) {
                 setUserData(data.userData);
+                localStorage.setItem('userData', JSON.stringify(data.userData));
             } else {
                 toast.error(data.message || "Failed to load profile");
             }
         } catch (error) {
-            console.error(error);
-            toast.error(error.response?.data?.message || error.message);
+            console.error("Error loading profile:", error);
+            // Don't show error toast for profile load failures
         }
     };
 
     // Load Parking Data Once
     useEffect(() => {
-        if (!backendUrl) {
-            console.error("❌ VITE_BACKEND_URL is missing.");
-            setError("Backend URL not found");
-            setLoading(false);
-            return;
-        }
-
+        console.log("Loading parking data from:", backendUrl);
         getParkingData();
-    }, [backendUrl]);
+    }, []);
 
-    // Load Profile When Token Exists
+    // Load Profile When Token Exists or Changes
     useEffect(() => {
-        if (token) {
-            loadUserProfileData();
-        } else {
-            setUserData(null);
-        }
+        loadUserProfileData();
     }, [token]);
 
     // Context Value
@@ -87,10 +86,26 @@ const AppContextProvider = ({ children }) => {
         getParkingData,
 
         token,
-        setToken,
+        setToken: (newToken) => {
+            setToken(newToken);
+            if (!newToken) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('userData');
+                setUserData(null);
+            } else {
+                localStorage.setItem('token', newToken);
+            }
+        },
 
         userData,
-        setUserData,
+        setUserData: (data) => {
+            setUserData(data);
+            if (data) {
+                localStorage.setItem('userData', JSON.stringify(data));
+            } else {
+                localStorage.removeItem('userData');
+            }
+        },
         loadUserProfileData,
 
         loading,

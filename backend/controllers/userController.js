@@ -12,43 +12,74 @@ const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    // Validation
+    console.log("Registration attempt:", { name, email });
+
+    // Validation: Check missing details
     if (!name || !email || !password) {
-      return res.status(400).json({ success: false, message: "All fields are required" });
+      return res.status(400).json({ 
+        success: false, 
+        message: "Please provide name, email, and password" 
+      });
     }
 
+    // Validation: Check valid email
     if (!validator.isEmail(email)) {
-      return res.status(400).json({ success: false, message: "Invalid email format" });
+      return res.status(400).json({ 
+        success: false, 
+        message: "Please enter a valid email address" 
+      });
     }
 
+    // Validation: Strong password
     if (password.length < 8) {
-      return res.status(400).json({ success: false, message: "Password must be at least 8 characters" });
+      return res.status(400).json({ 
+        success: false, 
+        message: "Password must be at least 8 characters long" 
+      });
     }
 
-    // Check existing user
+    // Check if user already exists
     const existingUser = await userModel.findOne({ email });
     if (existingUser) {
-      return res.status(409).json({ success: false, message: "User already exists" });
+      return res.status(409).json({ 
+        success: false, 
+        message: "User with this email already exists" 
+      });
     }
 
-    // Hash password
+    // Hashing user password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create user
-    const newUser = await userModel.create({
-      name,
-      email,
+    // Create default image URL (using a placeholder service)
+    const defaultImage = "https://api.dicebear.com/7.x/avataaars/svg?seed=" + encodeURIComponent(name);
+
+    // Creating user data
+    const userData = {
+      name: name.trim(),
+      email: email.toLowerCase().trim(),
       password: hashedPassword,
-      image: "https://res.cloudinary.com/your-cloud-name/image/upload/v1/default-profile",
+      image: defaultImage,
       phone: "",
       address: "",
       gender: "Not Selected",
       dob: ""
-    });
+    };
 
-    // Generate token
-    const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    console.log("Creating user:", userData.email);
+
+    // Save user to database
+    const newUser = new userModel(userData);
+    await newUser.save();
+
+    // Generate JWT Token (expires in 7 days)
+    const token = jwt.sign(
+      { id: newUser._id, email: newUser.email }, 
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    console.log("User registered successfully:", newUser._id);
 
     res.status(201).json({ 
       success: true, 
@@ -61,9 +92,30 @@ const registerUser = async (req, res) => {
         image: newUser.image
       }
     });
+    
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: "Server error" });
+    console.error("Registration error:", error);
+    
+    // Handle duplicate key error
+    if (error.code === 11000) {
+      return res.status(409).json({ 
+        success: false, 
+        message: "User with this email already exists" 
+      });
+    }
+    
+    // Handle validation errors
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Invalid user data provided" 
+      });
+    }
+    
+    res.status(500).json({ 
+      success: false, 
+      message: "Internal server error. Please try again later." 
+    });
   }
 };
 
