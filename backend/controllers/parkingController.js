@@ -27,31 +27,6 @@ const ParkingList = async (req, res) => {
     }
 };
 
-const loginParking = async (req, res) => {
-    try {
-        const { email, password } = req.body;
-        if (!email || !password) {
-            return res.status(400).json({ success: false, message: "Email and Password required" });
-        }
-
-        const parking = await parkingModel.findOne({ email });
-        if (!parking) {
-            return res.status(404).json({ success: false, message: "Invalid Credentials" });
-        }
-
-        const isMatch = await bcrypt.compare(password, parking.password);
-        if (!isMatch) {
-            return res.status(401).json({ success: false, message: "Invalid Credentials" });
-        }
-
-        const token = jwt.sign({ id: parking._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-        res.json({ success: true, token, message: "Login successful" });
-
-    } catch (error) {
-        console.error("Login error:", error);
-        res.status(500).json({ success: false, message: "Server Error" });
-    }
-};
 
 const bookingsParking = async (req, res) => {
     try {
@@ -126,38 +101,81 @@ const parkingDashboard = async (req, res) => {
     }
 };
 
+// Remove console.log statements exposing sensitive data
 const parkingProfile = async (req, res) => {
     try {
         const { parkId } = req.body;
-        const profileData = await parkingModel.findById(parkId).select('-password');
+        const profileData = await parkingModel.findById(parkId).select('-password -__v');
         if (profileData) {
             res.json({ success: true, profileData });
         } else {
-            res.json({ success: false, message: "Profile not found" });
+            res.status(404).json({ success: false, message: "Profile not found" });
         }
     } catch (error) {
-        console.error(error);
-        res.json({ success: false, message: error.message });
+        console.error("Profile error:", error.message);
+        res.status(500).json({ success: false, message: "Server error" });
     }
 };
 
 const updateParkingProfile = async (req, res) => {
     try {
-        const { parkId, pricePerHour, address, available, features, description, location } = req.body;
+        const { parkId, pricePerHour, address, available, features, description, location, contact } = req.body;
         const updateData = { 
-            pricePerHour, 
-            address, 
-            available,
-            features,
-            description,
-            location
+            pricePerHour: Number(pricePerHour),
+            address: address.trim(),
+            available: Boolean(available),
+            features: Array.isArray(features) ? features : [],
+            description: description.trim(),
+            location: location.trim(),
+            contact: contact.trim(),
+            updatedAt: Date.now()
         };
         
-        await parkingModel.findByIdAndUpdate(parkId, updateData);
-        res.json({ success: true, message: "Profile Updated" });
+        // Validate required fields
+        if (!updateData.location || !updateData.description || !updateData.contact) {
+            return res.status(400).json({ success: false, message: "Required fields missing" });
+        }
+        
+        const updatedProfile = await parkingModel.findByIdAndUpdate(
+            parkId, 
+            updateData, 
+            { new: true, runValidators: true }
+        ).select('-password -__v');
+        
+        if (!updatedProfile) {
+            return res.status(404).json({ success: false, message: "Parking not found" });
+        }
+        
+        res.json({ success: true, message: "Profile updated successfully", profileData: updatedProfile });
     } catch (error) {
-        console.error(error);
-        res.json({ success: false, message: error.message });
+        console.error("Update error:", error.message);
+        res.status(500).json({ success: false, message: "Failed to update profile" });
+    }
+};
+
+const loginParking = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        if (!email || !password) {
+            return res.status(400).json({ success: false, message: "Email and password required" });
+        }
+
+        const parking = await parkingModel.findOne({ email });
+        if (!parking) {
+            return res.status(401).json({ success: false, message: "Invalid credentials" });
+        }
+
+        const isMatch = await bcrypt.compare(password, parking.password);
+        if (!isMatch) {
+            return res.status(401).json({ success: false, message: "Invalid credentials" });
+        }
+
+        const token = jwt.sign({ id: parking._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
+        res.json({ success: true, token, message: "Login successful" });
+
+    } catch (error) {
+        console.error("Login error:", error.message);
+        res.status(500).json({ success: false, message: "Server error" });
     }
 };
 
