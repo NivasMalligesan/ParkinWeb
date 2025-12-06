@@ -16,76 +16,140 @@ const AppContextProvider = ({ children }) => {
     const [userData, setUserData] = useState(storedUserData ? JSON.parse(storedUserData) : null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [isBackendConnected, setIsBackendConnected] = useState(false);
+    const [isInitialized, setIsInitialized] = useState(false);
 
     console.log("Backend URL:", backendUrl);
 
-    // Test backend connection
-    const testBackendConnection = async () => {
-        try {
-            const response = await axios.get(`${backendUrl}/health`, { timeout: 5000 });
-            console.log("Backend health check:", response.data);
-            setIsBackendConnected(true);
-            return true;
-        } catch (error) {
-            console.error("Backend connection failed:", error.message);
-            setIsBackendConnected(false);
-            return false;
+    // Helper function to sanitize image URLs
+    const sanitizeImageUrl = (url, fallbackType = 'parking') => {
+        console.log("Sanitizing URL:", url, "type:", fallbackType);
+        
+        // If URL is undefined, null, or literally the string "undefined"
+        if (!url || url === 'undefined' || url === 'null' || url.includes('undefined')) {
+            console.log("URL is invalid, using fallback");
+            return getFallbackImage(fallbackType);
         }
+        
+        // If it's already a full URL, return as is
+        if (url.startsWith('http://') || url.startsWith('https://')) {
+            return url;
+        }
+        
+        // If it starts with // (protocol-relative URL), add https:
+        if (url.startsWith('//')) {
+            return `https:${url}`;
+        }
+        
+        // If it's a relative path starting with /, prepend backend URL
+        if (url.startsWith('/')) {
+            return `${backendUrl}${url}`;
+        }
+        
+        // If it's just a filename or path, assume it's relative to backend
+        return `${backendUrl}/${url}`;
     };
 
-    // Helper function to validate and fix image URLs
-const validateImageUrl = (url, fallbackType = 'parking') => {
-  if (!url || url === 'undefined' || url.includes('undefined')) {
-    // Return appropriate fallback image
-    switch(fallbackType) {
-      case 'user':
-        return 'https://api.dicebear.com/7.x/avataaars/svg?seed=user';
-      case 'parking':
-        return 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=400&h=300&fit=crop&auto=format';
-      default:
-        return 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=400&h=300&fit=crop&auto=format';
-    }
-  }
-  
-  // Ensure URL has protocol
-  if (!url.startsWith('http://') && !url.startsWith('https://')) {
-    return `https://${url}`;
-  }
-  
-  return url;
-};
+    // Get appropriate fallback image
+    const getFallbackImage = (type = 'parking') => {
+        const fallbacks = {
+            user: `https://api.dicebear.com/7.x/avataaars/svg?seed=${Date.now()}`,
+            parking: `https://api.dicebear.com/7.x/shapes/svg?seed=parking${Date.now()}&backgroundColor=3B82F6`,
+            default: `https://api.dicebear.com/7.x/shapes/svg?seed=default${Date.now()}`
+        };
+        return fallbacks[type] || fallbacks.default;
+    };
 
-// Then in your getParkingData function:
-const getParkingData = async () => {
-  try {
-    setLoading(true);
-    const { data } = await axios.get(`${backendUrl}/api/parking/parking-list`);
-    
-    if (data.success && data.parking) {
-      // Clean up parking data with valid image URLs
-      const cleanedParking = data.parking.map(park => ({
-        ...park,
-        image: validateImageUrl(park.image, 'parking'),
-        available: park.available !== undefined ? park.available : true,
-        pricePerHour: park.pricePerHour || 0,
-        totalCapacity: park.totalCapacity || 0,
-        rating: park.rating || 4.2
-      }));
-      
-      setParking(cleanedParking);
-      setError(null);
-    } else {
-      setError(data.message || "Failed to load parking data");
-    }
-  } catch (error) {
-    console.error("Error fetching parking data:", error);
-    setError("Network error. Please check your connection.");
-  } finally {
-    setLoading(false);
-  }
-}
+    // Sanitize parking data
+    const sanitizeParkingData = (parkingArray) => {
+        if (!Array.isArray(parkingArray)) return [];
+        
+        return parkingArray.map(park => {
+            // Create a safe copy with defaults
+            const safePark = {
+                _id: park._id || `temp-${Date.now()}-${Math.random()}`,
+                name: park.name || "Unnamed Parking",
+                location: park.location || "Location not specified",
+                pricePerHour: typeof park.pricePerHour === 'number' ? park.pricePerHour : 0,
+                totalCapacity: typeof park.totalCapacity === 'number' ? park.totalCapacity : 0,
+                rating: typeof park.rating === 'number' ? park.rating : 4.2,
+                available: park.available !== undefined ? park.available : true,
+                features: Array.isArray(park.features) ? park.features : [],
+                description: park.description || "",
+                address: park.address || "",
+                contact: park.contact || "",
+                // Sanitize image URL
+                image: sanitizeImageUrl(park.image, 'parking')
+            };
+            
+            console.log("Sanitized parking:", safePark.name, "Image:", safePark.image);
+            return safePark;
+        });
+    };
 
+    // Sanitize user data
+    const sanitizeUserData = (user) => {
+        if (!user) return null;
+        
+        const safeUser = {
+            ...user,
+            name: user.name || "User",
+            email: user.email || "",
+            phone: user.phone || "",
+            address: user.address || "",
+            gender: user.gender || "Not Selected",
+            dob: user.dob || "",
+            // Sanitize image URL
+            image: sanitizeImageUrl(user.image, 'user')
+        };
+        
+        console.log("Sanitized user:", safeUser.name, "Image:", safeUser.image);
+        return safeUser;
+    };
+
+    // Fetch Parking List
+    const getParkingData = async () => {
+        try {
+            setLoading(true);
+            console.log("Fetching parking data from:", `${backendUrl}/api/parking/parking-list`);
+            
+            const response = await axios.get(`${backendUrl}/api/parking/parking-list`, {
+                timeout: 15000,
+                headers: {
+                    'Cache-Control': 'no-cache'
+                }
+            });
+            
+            console.log("Parking API Response:", response.data);
+            
+            if (response.data.success) {
+                const sanitizedParking = sanitizeParkingData(response.data.parking || []);
+                console.log(`Loaded ${sanitizedParking.length} parking spots`);
+                setParking(sanitizedParking);
+                setError(null);
+                
+                // Log first parking item for debugging
+                if (sanitizedParking.length > 0) {
+                    console.log("First parking item:", {
+                        name: sanitizedParking[0].name,
+                        image: sanitizedParking[0].image,
+                        rawImage: response.data.parking?.[0]?.image
+                    });
+                }
+            } else {
+                setError(response.data.message || "Failed to load parking data");
+                toast.error(response.data.message || "Failed to load parking data");
+                setParking([]); // Set empty array on error
+            }
+        } catch (error) {
+            console.error("Error fetching parking data:", error);
+            setError("Unable to connect to server. Please try again.");
+            toast.error("Cannot connect to server. Please check your internet connection.");
+            setParking([]); // Set empty array on error
+        } finally {
+            setLoading(false);
+            setIsInitialized(true);
+        }
+    };
 
     // Fetch User Profile
     const loadUserProfileData = async () => {
@@ -95,54 +159,44 @@ const getParkingData = async () => {
         }
         
         try {
-            const { data } = await axios.get(`${backendUrl}/api/user/get-profile`, {
-                headers: { token },
+            console.log("Loading user profile with token:", token.substring(0, 10) + "...");
+            
+            const response = await axios.get(`${backendUrl}/api/user/get-profile`, {
+                headers: { 
+                    'token': token,
+                    'Cache-Control': 'no-cache'
+                },
                 timeout: 10000
             });
 
-            if (data.success && data.userData) {
-                // Ensure image URL is valid
-                const userDataWithValidImage = {
-                    ...data.userData,
-                    image: data.userData.image || getDefaultUserImage(data.userData.name)
-                };
-                setUserData(userDataWithValidImage);
-                localStorage.setItem('userData', JSON.stringify(userDataWithValidImage));
+            console.log("User profile response:", response.data);
+            
+            if (response.data.success && response.data.userData) {
+                const sanitizedUser = sanitizeUserData(response.data.userData);
+                setUserData(sanitizedUser);
+                localStorage.setItem('userData', JSON.stringify(sanitizedUser));
+            } else {
+                console.log("User profile not loaded:", response.data.message);
             }
         } catch (error) {
             console.error("Error loading profile:", error);
+            // Don't show error for profile load failures
         }
     };
 
-    // Helper function to get default user image
-    const getDefaultUserImage = (name = "User") => {
-        return `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`;
-    };
-
-    // Initialize default user data if needed
-    const getInitialUserData = () => {
-        if (storedUserData) {
-            const parsed = JSON.parse(storedUserData);
-            return {
-                ...parsed,
-                image: parsed.image || getDefaultUserImage(parsed.name)
-            };
-        }
-        return null;
-    };
-
-    // Load Parking Data Once
+    // Initialize
     useEffect(() => {
-        console.log("Loading parking data from:", backendUrl);
+        console.log("AppContext initializing...");
         getParkingData();
     }, []);
 
-    // Load Profile When Token Exists or Changes
+    // Load profile when token changes
     useEffect(() => {
         if (token) {
             loadUserProfileData();
         } else {
             setUserData(null);
+            localStorage.removeItem('userData');
         }
     }, [token]);
 
@@ -152,10 +206,11 @@ const getParkingData = async () => {
         currencySymbol,
         backendUrl,
         getParkingData,
-        isBackendConnected,
+        isInitialized,
 
         token,
         setToken: (newToken) => {
+            console.log("Setting token:", newToken ? newToken.substring(0, 10) + "..." : "null");
             setToken(newToken);
             if (!newToken) {
                 localStorage.removeItem('token');
@@ -168,13 +223,10 @@ const getParkingData = async () => {
 
         userData,
         setUserData: (data) => {
-            const userWithImage = {
-                ...data,
-                image: data?.image || getDefaultUserImage(data?.name)
-            };
-            setUserData(userWithImage);
+            const sanitized = sanitizeUserData(data);
+            setUserData(sanitized);
             if (data) {
-                localStorage.setItem('userData', JSON.stringify(userWithImage));
+                localStorage.setItem('userData', JSON.stringify(sanitized));
             } else {
                 localStorage.removeItem('userData');
             }
@@ -182,7 +234,11 @@ const getParkingData = async () => {
         loadUserProfileData,
 
         loading,
-        error
+        error,
+        
+        // Helper functions for components
+        sanitizeImageUrl,
+        getFallbackImage
     };
 
     return (

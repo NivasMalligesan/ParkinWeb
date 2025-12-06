@@ -1,12 +1,11 @@
 import React, { useContext, useState } from 'react';
-import { NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { FaRegUserCircle } from "react-icons/fa";
+import { NavLink, useNavigate } from 'react-router-dom';
 import { motion } from "motion/react"
 import { AppContext } from '../context/AppContext';
+import SafeImage from './SafeImage';
 
 const Navbar = () => {
     const navigate = useNavigate();
-    const location = useLocation();
     const { token, setToken, userData } = useContext(AppContext);
     const [showDropdown, setShowDropdown] = useState(false);
 
@@ -16,31 +15,11 @@ const Navbar = () => {
         navigate('/');
     };
 
-    // Safe image source
-    const getUserImage = () => {
-        if (!userData?.image) {
-            return <FaRegUserCircle className="w-8 h-8 text-gray-500" />;
-        }
-        return (
-            <img 
-                src={userData.image} 
-                alt={userData.name || "User"} 
-                className="w-8 h-8 rounded-full object-cover border border-gray-300"
-                onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.style.display = 'none';
-                    e.target.parentElement.innerHTML = '<FaRegUserCircle className="w-8 h-8 text-gray-500" />';
-                }}
-            />
-        );
-    };
-
     return (
         <motion.div 
             initial={{ opacity: 1, y: -100 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            viewport={{ once: true }}
             className='sticky top-0 z-50 bg-white w-full flex items-center justify-between py-3 px-4 md:px-6 mb-5 shadow-sm'
         >
             <h1 
@@ -93,18 +72,17 @@ const Navbar = () => {
                             className='flex items-center gap-2 cursor-pointer focus:outline-none'
                             aria-label="User menu"
                         >
-                            {getUserImage()}
+                            <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-300">
+                                <SafeImage
+                                    src={userData.image}
+                                    alt={userData.name}
+                                    className="w-full h-full object-cover"
+                                    fallbackType="user"
+                                />
+                            </div>
                             <span className='hidden md:inline text-sm font-medium text-gray-700'>
                                 {userData.name?.split(' ')[0] || 'User'}
                             </span>
-                            <svg 
-                                className={`w-4 h-4 transition-transform ${showDropdown ? 'rotate-180' : ''}`} 
-                                fill="none" 
-                                stroke="currentColor" 
-                                viewBox="0 0 24 24"
-                            >
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                            </svg>
                         </button>
                         
                         {showDropdown && (
